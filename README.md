@@ -1,73 +1,42 @@
-# Bookmark Organizer Web App
+# AI Bookmark Organizer (Chrome Extension)
 
-A powerful web application to organize your massive collection of bookmarks using AI.
+<img src="assets/promo_small_440x280.png" alt="AI Bookmark Organizer Banner" width="440">
 
-## Features
-- **Smart Categorization**: Uses AI (Gemini/OpenAI) to categorize bookmarks.
-- **Progress Tracking**: Real-time progress updates via Server-Sent Events (SSE).
-- **Modern UI**: React-based frontend with a responsive design.
-- **REST API**: FastAPI backend for robust processing.
+Organize your messy bookmarks automatically using Google Gemini AI. Privacy-focused, local processing, and instant export.
 
-## Project Structure
-- `frontend/`: React + Vite application
-- `backend/`: FastAPI application
-- `results/`: Output directory for organized bookmarks
+## 🚀 Features
+- **One-Click Logic**: Sorts hundreds of bookmarks into smart categories (Dev, News, Shopping, etc.).
+- **Privacy First**: Your bookmarks are processed in-memory and never stored on our servers.
+- **Export Ready**: Save your cleaned-up bookmarks as standard HTML.
 
-## 🚀 How to Run Locally
+## 📥 Installation
 
-### Prerequisites
-- Node.js (v18+)
-- Python (v3.9+)
+You can install this extension manually (no Store required) by downloading the latest release.
 
-### 1. Backend Setup
-Navigate to the root directory.
+### Method 1: Download & Install (Easiest)
+1.  **Download**: Go to the `releases/` folder above and download **[bookmark_organizer_v1.0.0.zip](releases/bookmark_organizer_v1.0.0.zip)**.
+2.  **Unzip**: Extract the zip file to a folder on your computer.
+3.  **Open Chrome Extensions**:
+    - Type `chrome://extensions` in your address bar.
+    - Enable **Developer mode** (top right switch).
+4.  **Load**:
+    - Click **Load unpacked**.
+    - Select the folder inside the unzipped location (it should contain `manifest.json`).
+5.  **Done!** The extension icon should appear in your toolbar.
 
-1. **Install Dependencies**
-   ```bash
-   python3 -m pip install -r requirements.txt
-   ```
+### Method 2: Build from Source
+If you are a developer and want to modify the code:
+```bash
+git clone https://github.com/your-username/Bookmark-Organizer-Browser-Extension.git
+cd chrome_extension/frontend
+npm install
+npm run build
+# Then load the 'dist' folder in chrome://extensions
+```
 
-2. **Environment Variables**
-   Ensure your `.env` file contains your API keys:
-   ```
-   OPENROUTER_API_KEY=your_key_here
-   # or
-   GEMINI_API_KEY=your_key_here
-   ```
+## 🔒 Privacy
+We do not collect data. Your API key is stored locally in your browser. Bookmarks are sent directly to the OpenRouter API for categorization and then immediately discarded.
+[Read our Privacy Policy](docs/privacy.html)
 
-3. **Start the Server**
-   ```bash
-   uvicorn backend.app:app --reload
-   ```
-   The API will start at `http://localhost:8000`.
-
-### 2. Frontend Setup
-Open a new terminal.
-
-1. **Install Dependencies**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-2. **Start Development Server**
-   ```bash
-   npm run dev
-   ```
-   The UI will be available at `http://localhost:5173`.
-
-## 🐳 Deployment (Docker)
-
-You can run the entire stack using Docker Compose.
-
-1. **Build and Run**
-   ```bash
-   docker-compose up --build
-   ```
-
-2. **Access the App**
-   - Frontend: `http://localhost:80` (or configured port)
-   - Backend: `http://localhost:8000`
-
-## API Documentation
-Once the backend is running, visit `http://localhost:8000/docs` for the interactive Swagger documentation.
+## License
+MIT License
