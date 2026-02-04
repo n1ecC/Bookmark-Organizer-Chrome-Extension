@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+*.DS_Store
+node_modules/
+
+# Generated Data
+all_bookmarks.html
+organized_bookmarks_clean.html
+bookmark_progress.jsonl
+failed_batches.jsonl
+
+# Documentation (Ignored by request)
+CHANGELOG.md
+DEBUGGING_GUIDE.md
+debug_output/
