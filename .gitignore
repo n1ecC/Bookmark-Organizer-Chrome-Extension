@@ -13,4 +13,14 @@ failed_batches.jsonl
 # Documentation (Ignored by request)
 CHANGELOG.md
 DEBUGGING_GUIDE.md
+IMPLEMENTATION_PLAN.md
+TESTING.md
+STORE_LISTING.md
+DEPLOYMENT_PLAN.md
+DEPLOYMENT_GUIDE.md
+HOSTING_GUIDE.md
+PRIVACY_FORM.md
 debug_output/
+assets/
+
+
