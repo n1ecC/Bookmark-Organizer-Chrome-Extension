@@ -192,7 +192,7 @@ export default function Organizer() {
                     <p style={{ margin: 0, display: 'flex', gap: '0.5rem' }}>
                         <span>⚡</span>
                         <span>
-                            Powered by <strong>Google Gemini 2.0 Flash</strong> via OpenRouter.
+                            Powered by <strong>Google Gemini 3.5 Flash</strong> via OpenRouter.
                             This model is optimized for speed and accuracy in categorizing your bookmarks.
                         </span>
                     </p>
