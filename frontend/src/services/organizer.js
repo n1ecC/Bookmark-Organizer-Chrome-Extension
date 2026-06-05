@@ -7,7 +7,7 @@ export class OrganizerService {
         this.apiKey = apiKey;
         this.categories = categories;
         this.onProgress = onProgress || (() => { });
-        this.batchSize = 10;
+        this.batchSize = 35;
         this.isCancelled = false;
     }
 
@@ -56,27 +56,40 @@ export class OrganizerService {
 
         const total = allLinks.length;
         let processed = 0;
-        const finalResults = [];
 
+        // Group into batches
+        const batches = [];
         for (let i = 0; i < total; i += this.batchSize) {
-            if (this.isCancelled) {
-                this.onProgress({ status: 'warning', message: 'Process cancelled.' });
-                break;
-            }
+            batches.push({
+                index: batches.length,
+                batchData: allLinks.slice(i, i + this.batchSize)
+            });
+        }
 
-            const batch = allLinks.slice(i, i + this.batchSize);
-            this.onProgress({ status: 'processing', message: `Classifying batch ${Math.ceil((i + 1) / this.batchSize)}...`, percent: Math.round((processed / total) * 100) });
+        const results = new Array(batches.length);
+        let batchIdx = 0;
+
+        const processNext = async () => {
+            if (batchIdx >= batches.length || this.isCancelled) return;
+            const currentIdx = batchIdx++;
+            const { index, batchData } = batches[currentIdx];
+
+            this.onProgress({
+                status: 'processing',
+                message: `Classifying batch ${currentIdx + 1}/${batches.length}...`,
+                percent: Math.round((processed / total) * 100)
+            });
 
             try {
-                const classified = await classifyBatch(batch, this.apiKey, this.categories);
+                const classified = await classifyBatch(batchData, this.apiKey, this.categories);
 
                 if (fileBookmarks) {
-                    // Collect for export
-                    finalResults.push(...classified);
+                    results[index] = classified;
                 } else {
-                    // Save to browser immediately
+                    // Browser mode: Save immediately
                     this.onProgress({ status: 'info', message: `Saving ${classified.length} bookmarks...` });
                     for (const item of classified) {
+                        if (this.isCancelled) break;
                         if (!item.category) item.category = "Uncategorized";
 
                         const catFolder = await findOrCreateFolder(rootFolder.id, item.category);
@@ -91,21 +104,36 @@ export class OrganizerService {
                     }
                 }
 
-                processed += batch.length;
-                this.onProgress({ status: 'progress', percent: Math.round((processed / total) * 100) });
+                processed += batchData.length;
+                this.onProgress({ status: 'progress', percent: Math.min(100, Math.round((processed / total) * 100)) });
 
             } catch (err) {
-                console.error(err);
-                this.onProgress({ status: 'error', message: `Batch failed: ${err.message}` });
+                console.error(`Batch ${currentIdx + 1} failed:`, err);
+                this.onProgress({ status: 'error', message: `Batch ${currentIdx + 1} failed: ${err.message}` });
             }
+
+            await processNext();
+        };
+
+        // Run batches concurrently (limit to 3 concurrent requests to prevent rate limit issues)
+        const concurrencyLimit = 3;
+        const workers = [];
+        for (let w = 0; w < Math.min(concurrencyLimit, batches.length); w++) {
+            workers.push(processNext());
         }
+        await Promise.all(workers);
 
         if (fileBookmarks && !this.isCancelled) {
             this.onProgress({ status: 'info', message: '💾 Generating organized file...' });
+            const finalResults = results.flat().filter(Boolean);
             downloadBookmarks(finalResults);
         }
 
-        this.onProgress({ status: 'done', message: '✅ Organization complete!' });
+        if (this.isCancelled) {
+            this.onProgress({ status: 'warning', message: 'Process cancelled.' });
+        } else {
+            this.onProgress({ status: 'done', message: '✅ Organization complete!' });
+        }
     }
 }
 
