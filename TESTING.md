@@ -2,39 +2,34 @@
 
 ## Prerequisites
 1.  **Build the Project**:
-    - Ensure you have Node.js installed.
+    - Ensure you have Node.js and npm installed.
     - Run the build command in the `frontend` directory:
       ```bash
-      cd chrome_extension/frontend
+      cd frontend
+      npm install
       npm run build
       ```
-    - This creates a `dist` folder containing the compiled extension.
+    - This creates a `dist` folder containing the compiled extension assets.
 
 ## Loading the Extension in Chrome
-1.  Open Chrome and navigate to `chrome://extensions/`.
+1.  Open Google Chrome and navigate to `chrome://extensions/`.
 2.  Toggle **Developer mode** in the top-right corner.
-3.  Click **Load unpacked** (top-left).
-4.  Select the `chrome_extension/frontend/dist` folder.
-    - **Note**: Do not select the `public` or `src` folder; it must be `dist`.
+3.  Click the **Load unpacked** button (top-left).
+4.  Select the `frontend/dist` folder in the project directory.
+    - **Note**: Do not select the `public` or `src` folder; it must be the `dist` folder.
 
 ## Verification Steps
 
 ### 1. Functional Testing
-- **Popup**: Click the extension icon. Verify usage of the API Key and "Organize" button.
-- **Organization**: Upload a bookmarks HTML file or use browser bookmarks (if permissions allow).
-- **Chat**: (If applicable) Test the chat interface.
+- **Extension Popup**: Click the extension icon in the toolbar. Verify that the UI opens correctly and displays the updated text: *Powered by Google Gemini 3.5 Flash via OpenRouter*.
+- **API Key Configuration**: Enter your OpenRouter API key. Verify that it is saved locally (it will stay populated when you close and reopen the extension).
+- **Organization Options**:
+  - **Browser Mode**: Without uploading a file, click the **Organize My Bookmarks** button. Verify that it scans your local browser bookmarks, organizes them, and places them under a new "AI Organized Bookmarks-[Date]" folder structure.
+  - **File Mode**: Drag and drop a bookmarks HTML file (or browse to select one), and click **Organize File & Download**. Verify that a newly organized bookmarks file download is initiated.
 
-### 2. Security Testing (Manual)
-- **CSP Check**:
-    - Inspect the extension popup (Right-click -> Inspect).
-    - Go to the **Console** tab.
-    - Verify there are no "Content Security Policy" errors.
-    - Try to execute `eval('alert(1)')` in the console. It **should fail** if CSP is active.
-
-### 3. Automated Tests
-- This project includes a Vitest suite for logic and security checks.
-- Run tests via terminal:
-  ```bash
-  cd chrome_extension/frontend
-  npm test
-  ```
+### 2. Developer Console & Security Checks
+- **Console Errors**:
+    - Right-click inside the extension popup and choose **Inspect** to open the developer tools.
+    - Navigate to the **Console** tab.
+    - Run the organization process and verify that there are no JavaScript or Content Security Policy (CSP) errors.
+    - Try to execute `eval('alert(1)')` in the console. It **should fail** if the extension's default CSP is active.
