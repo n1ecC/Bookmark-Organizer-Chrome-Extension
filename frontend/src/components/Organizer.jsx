@@ -133,7 +133,11 @@ export default function Organizer() {
 
         try {
             setStatus('processing')
-            setLogs(['🚀 Starting AI Organization...'])
+            const selectedModelLabel = models.find(m => m.id === selectedModel)?.label || selectedModel
+            setLogs([
+                '🚀 Starting AI Organization...',
+                `🤖 Using Model: Google Gemini ${selectedModelLabel}`
+            ])
             setProgress(0)
             setErrorMsg('')
 
