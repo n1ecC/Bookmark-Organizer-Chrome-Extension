@@ -184,8 +184,8 @@ export default function Organizer() {
 
             {/* API Key Input */}
             <div style={{ marginBottom: '2rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#e2e8f0', fontSize: '0.9rem', fontWeight: '500' }}>
-                    OpenRouter API Key <span style={{ color: '#f43f5e' }}>*</span>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
+                    OpenRouter API Key <span style={{ color: 'var(--error)' }}>*</span>
                 </label>
                 <input
                     type="password"
@@ -196,23 +196,23 @@ export default function Organizer() {
                         width: '100%',
                         padding: '0.75rem',
                         borderRadius: '8px',
-                        border: '1px solid #334155',
-                        background: '#1e293b',
-                        color: '#e2e8f0',
+                        border: '1px solid var(--border)',
+                        background: 'var(--surface-solid)',
+                        color: 'var(--text-primary)',
                         fontSize: '1rem',
                         outline: 'none',
                         marginBottom: '0.5rem'
                     }}
                 />
 
-                <div style={{ fontSize: '0.8rem', color: '#94a3b8', background: 'rgba(30, 41, 59, 0.5)', padding: '0.75rem', borderRadius: '6px', border: '1px solid #334155' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'var(--surface-alt)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                        <span style={{ color: '#10b981' }}>🔒</span>
+                        <span style={{ color: 'var(--success)' }}>🔒</span>
                         <span>Your API key is stored locally in your browser.</span>
                     </div>
                 </div>
 
-                <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#94a3b8', lineHeight: '1.4' }}>
+                <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
                     <p style={{ margin: 0, display: 'flex', gap: '0.5rem' }}>
                         <span>⚡</span>
                         <span>
@@ -225,11 +225,11 @@ export default function Organizer() {
 
             {/* Model Selector */}
             {status === 'idle' && (
-                <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(30, 41, 59, 0.4)', borderRadius: '8px', border: '1px solid #334155' }}>
-                    <label style={{ display: 'block', marginBottom: '0.75rem', color: '#e2e8f0', fontSize: '0.9rem', fontWeight: '500' }}>
+                <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <label style={{ display: 'block', marginBottom: '0.75rem', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
                         🎯 Select AI Model
                     </label>
-                    <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem', background: '#1e293b', borderRadius: '8px', border: '1px solid #334155' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem', background: 'var(--surface-solid)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         {models.map((model) => (
                             <button
                                 key={model.id}
@@ -239,20 +239,20 @@ export default function Organizer() {
                                     padding: '0.6rem 0.8rem',
                                     borderRadius: '6px',
                                     border: 'none',
-                                    background: selectedModel === model.id ? 'linear-gradient(to right, #6366f1, #a855f7)' : 'transparent',
-                                    color: selectedModel === model.id ? '#fff' : '#94a3b8',
+                                    background: selectedModel === model.id ? 'var(--accent-gradient)' : 'transparent',
+                                    color: selectedModel === model.id ? 'var(--on-accent)' : 'var(--text-secondary)',
                                     cursor: 'pointer',
                                     fontSize: '0.85rem',
                                     fontWeight: selectedModel === model.id ? '600' : '500',
                                     transition: 'all 0.2s ease',
-                                    boxShadow: selectedModel === model.id ? '0 0 12px rgba(99, 102, 241, 0.4)' : 'none'
+                                    boxShadow: selectedModel === model.id ? '0 1px 10px var(--accent-glow)' : 'none'
                                 }}
                             >
                                 {model.label}
                             </button>
                         ))}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.75rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
                         ℹ️ 3.5 Flash: best accuracy. 2.5 Flash: faster & efficient. 3.1 Lite: lightweight option.
                     </div>
                 </div>
@@ -260,8 +260,8 @@ export default function Organizer() {
 
             {/* Category Editor */}
             {status === 'idle' && (
-                <div className="glass-panel" style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(30, 41, 59, 0.4)' }}>
-                    <h3 style={{ margin: '0 0 1rem 0', color: '#e2e8f0', fontSize: '1.1rem' }}>Customize Categories</h3>
+                <div className="glass-panel" style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)' }}>
+                    <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-primary)', fontSize: '1.1rem' }}>Customize Categories</h3>
 
                     <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                         <input
@@ -279,9 +279,9 @@ export default function Organizer() {
                                 flex: 1,
                                 padding: '0.5rem',
                                 borderRadius: '6px',
-                                border: '1px solid #334155',
-                                background: '#1e293b',
-                                color: '#e2e8f0',
+                                border: '1px solid var(--border)',
+                                background: 'var(--surface-solid)',
+                                color: 'var(--text-primary)',
                                 outline: 'none'
                             }}
                         />
@@ -296,9 +296,9 @@ export default function Organizer() {
                             style={{
                                 padding: '0.5rem 1rem',
                                 borderRadius: '6px',
-                                border: '1px solid #334155',
-                                background: '#334155',
-                                color: 'white',
+                                border: '1px solid var(--border)',
+                                background: 'var(--accent)',
+                                color: 'var(--on-accent)',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center'
@@ -314,17 +314,17 @@ export default function Organizer() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '0.5rem',
-                                background: '#1e293b',
-                                border: '1px solid #334155',
+                                background: 'var(--surface-solid)',
+                                border: '1px solid var(--border)',
                                 padding: '0.25rem 0.75rem',
                                 borderRadius: '20px',
                                 fontSize: '0.9rem',
-                                color: '#94a3b8'
+                                color: 'var(--text-secondary)'
                             }}>
                                 {cat}
                                 <X
                                     size={14}
-                                    style={{ cursor: 'pointer', color: '#ef4444' }}
+                                    style={{ cursor: 'pointer', color: 'var(--error)' }}
                                     onClick={() => setCategories(categories.filter((_, i) => i !== idx))}
                                 />
                             </div>
@@ -339,13 +339,13 @@ export default function Organizer() {
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                     style={{
-                        border: '2px dashed #334155',
+                        border: '2px dashed var(--border)',
                         borderRadius: '12px',
                         padding: '1.5rem',
                         marginBottom: '2rem',
                         textAlign: 'center',
-                        background: uploadedFile ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                        borderColor: uploadedFile ? '#10b981' : '#334155',
+                        background: uploadedFile ? 'var(--success-soft)' : 'transparent',
+                        borderColor: uploadedFile ? 'var(--success)' : 'var(--border)',
                         cursor: 'pointer',
                         transition: 'all 0.2s'
                     }}
@@ -361,11 +361,11 @@ export default function Organizer() {
 
                     {uploadedFile ? (
                         <div>
-                            <div style={{ color: '#10b981', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                            <div style={{ color: 'var(--success)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                                 <FileText size={24} />
                                 <span style={{ fontWeight: 'bold' }}>{uploadedFile.name}</span>
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                 {parsedBookmarks ? `${parsedBookmarks.length} bookmarks ready` : 'Ready to process'}
                             </div>
                             <button
@@ -374,7 +374,7 @@ export default function Organizer() {
                                     marginTop: '0.5rem',
                                     background: 'transparent',
                                     border: 'none',
-                                    color: '#ef4444',
+                                    color: 'var(--error)',
                                     fontSize: '0.8rem',
                                     cursor: 'pointer',
                                     textDecoration: 'underline'
@@ -385,14 +385,14 @@ export default function Organizer() {
                         </div>
                     ) : (
                         <div>
-                            <Upload size={24} style={{ color: '#94a3b8', marginBottom: '0.5rem' }} />
-                            <div style={{ color: '#e2e8f0', marginBottom: '0.25rem' }}>
+                            <Upload size={24} style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }} />
+                            <div style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
                                 Drag & drop bookmarks.html here
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                                 or click to browse
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: '#475569', marginTop: '1rem' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--terminal-muted)', marginTop: '1rem' }}>
                                 (Optional - defaults to browser's current bookmarks)
                             </div>
                         </div>
@@ -404,19 +404,19 @@ export default function Organizer() {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
                 {status === 'complete' ? (
                     <div style={{ textAlign: 'center' }}>
-                        <div style={{ marginBottom: '1rem', color: '#10b981', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                        <div style={{ marginBottom: '1rem', color: 'var(--success)', fontSize: '1.2rem', fontWeight: 'bold' }}>
                             {uploadedFile ? "File Processed! Check your downloads." : 'All Done! Check your "AI Organized Bookmarks" folder.'}
                         </div>
                         <div
                             onClick={resetApp}
                             style={{
                                 cursor: 'pointer',
-                                color: '#38bdf8',
+                                color: 'var(--accent)',
                                 fontSize: '0.9rem',
-                                border: '1px solid #1e293b',
+                                border: '1px solid var(--border)',
                                 padding: '0.5rem 1rem',
                                 borderRadius: '6px',
-                                background: 'rgba(56, 189, 248, 0.05)',
+                                background: 'var(--accent-soft)',
                                 display: 'inline-block'
                             }}
                         >
@@ -450,7 +450,7 @@ export default function Organizer() {
 
             {/* Error Message */}
             {errorMsg && (
-                <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#ef4444', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ background: 'var(--error-soft)', border: '1px solid var(--error)', color: 'var(--error)', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <AlertCircle size={20} />
                     {errorMsg}
                 </div>
@@ -460,27 +460,27 @@ export default function Organizer() {
             <div
                 className="glass-panel"
                 style={{
-                    background: '#020617',
-                    border: '1px solid #1e293b',
+                    background: 'var(--terminal-bg)',
+                    border: '1px solid var(--border)',
                     height: '300px',
                     overflowY: 'auto',
                     padding: '1rem',
                     fontFamily: 'monospace',
                     fontSize: '0.9rem',
-                    color: '#38bdf8'
+                    color: 'var(--terminal-text)'
                 }}
                 ref={logContainerRef}
             >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid #1e293b', paddingBottom: '0.5rem', color: '#64748b' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--terminal-muted)', paddingBottom: '0.5rem', color: 'var(--text-muted)' }}>
                     <Terminal size={16} />
                     <span>System Output</span>
                 </div>
 
-                {logs.length === 0 && <span style={{ color: '#475569' }}>Waiting for start...</span>}
+                {logs.length === 0 && <span style={{ color: 'var(--terminal-muted)' }}>Waiting for start...</span>}
 
                 {logs.map((log, index) => (
                     <div key={index} style={{ marginBottom: '0.25rem' }}>
-                        <span style={{ color: '#64748b', marginRight: '0.5rem' }}>
+                        <span style={{ color: 'var(--text-muted)', marginRight: '0.5rem' }}>
                             {typeof log === 'object' ? log.timestamp.toLocaleTimeString() : new Date().toLocaleTimeString()}
                         </span>
                         {typeof log === 'object' ? log.message : log}
