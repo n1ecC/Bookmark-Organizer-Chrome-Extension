@@ -34,7 +34,7 @@
 
 <body>
     <h1>Privacy Policy</h1>
-    <p class="date">Last Updated: February 3, 2026</p>
+    <p class="date">Last Updated: June 9, 2026</p>
 
     <p>This Privacy Policy describes how the <strong>AI Bookmark Organizer</strong> browser extension ("we", "us", or
         "our") handles your information.</p>
@@ -62,16 +62,32 @@
         understand how they handle API requests.</p>
 
     <h2>3. Permissions</h2>
-    <p>The extension requires the following permissions to function:</p>
+    <p>The extension requires the following permissions to function. Each is used only for the purpose described
+        below, and for no other purpose:</p>
     <ul>
-        <li><strong>bookmarks:</strong> To read your current bookmarks and create the new organized folders.</li>
-        <li><strong>storage:</strong> To save your API Key locally on your device so you don't have to re-enter it.</li>
-        <li><strong>downloads:</strong> To allow you to export your organized bookmarks as an HTML file.</li>
+        <li><strong>bookmarks:</strong> To read your existing bookmarks and write the newly organized folder
+            structure back into the browser. This is the extension's core function.</li>
+        <li><strong>storage:</strong> To locally store your OpenRouter API key and your theme/model preferences on
+            your device so you don't have to re-enter them. This data never leaves your browser.</li>
+        <li><strong>downloads:</strong> To export your organized bookmarks as an HTML file when you process an
+            uploaded bookmarks file, so you can save the cleaned-up result.</li>
+        <li><strong>sidePanel:</strong> To display the extension's interface in the browser's side panel.</li>
+        <li><strong>Host permission (<code>https://openrouter.ai/*</code>):</strong> To send your bookmark titles and
+            URLs directly from your browser to the OpenRouter API for AI categorization. The extension has no backend
+            server of its own, so it must make these requests directly from the client. This permission is scoped to
+            only <code>openrouter.ai</code> &mdash; the single endpoint that performs the categorization &mdash; and no
+            data is sent to any other host.</li>
     </ul>
 
-    <h2>4. Contact</h2>
+    <h2>4. Remote Code</h2>
+    <p>This extension does <strong>not</strong> download or execute any remote code. It only transmits your bookmark
+        data to the OpenRouter API and receives categorization results in return. All executable code is contained
+        within the published extension package.</p>
+
+    <h2>5. Contact</h2>
     <p>If you have questions about this policy, you may contact the developer via the <a
-            href="https://github.com/your-username/bookmark-organizer/issues">GitHub Repository</a>.</p>
+            href="https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension/issues">GitHub Repository</a>.
+    </p>
 </body>
 
 </html>
