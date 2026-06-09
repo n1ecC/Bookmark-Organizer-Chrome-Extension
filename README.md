@@ -41,4 +41,6 @@ We do not collect data. Your API key is stored locally in your browser. Bookmark
 [Read our Privacy Policy](docs/privacy.html)
 
 ## License
-MIT License
+This project is licensed under the **GNU General Public License v3.0** — see the [LICENSE](LICENSE) file for the full text.
+
+Copyright (C) 2026 Amado Evert
