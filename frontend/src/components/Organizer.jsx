@@ -12,6 +12,15 @@ export default function Organizer() {
     // API Keys
     const [apiKey, setApiKey] = useState('') // OpenRouter
 
+    // Model Selection
+    const [selectedModel, setSelectedModel] = useState('google/gemini-3.5-flash')
+    const models = [
+        { id: 'google/gemini-2.0-flash', label: '2.0 Flash' },
+        { id: 'google/gemini-2.5-flash', label: '2.5 Flash' },
+        { id: 'google/gemini-3.0-flash', label: '3.0 Flash' },
+        { id: 'google/gemini-3.5-flash', label: '3.5 Flash' }
+    ]
+
     const [categories, setCategories] = useState([
         "Technology & Coding",
         "News & Research",
@@ -32,8 +41,9 @@ export default function Organizer() {
     // Load Settings from storage
     useEffect(() => {
         if (typeof chrome !== 'undefined' && chrome.storage) {
-            chrome.storage.local.get(['apiKey'], (result) => {
+            chrome.storage.local.get(['apiKey', 'selectedModel'], (result) => {
                 if (result.apiKey) setApiKey(result.apiKey)
+                if (result.selectedModel) setSelectedModel(result.selectedModel)
             })
         }
     }, [])
@@ -48,6 +58,11 @@ export default function Organizer() {
     const handleApiKeyChange = (val) => {
         setApiKey(val)
         updateSetting('apiKey', val)
+    }
+
+    const handleModelChange = (modelId) => {
+        setSelectedModel(modelId)
+        updateSetting('selectedModel', modelId)
     }
 
     // File Upload Handlers
@@ -142,7 +157,8 @@ export default function Organizer() {
                         setStatus('complete')
                         setProgress(100)
                     }
-                }
+                },
+                selectedModel
             )
 
             // Pass parsed bookmarks if file mode, otherwise null (browser mode)
@@ -192,12 +208,47 @@ export default function Organizer() {
                     <p style={{ margin: 0, display: 'flex', gap: '0.5rem' }}>
                         <span>⚡</span>
                         <span>
-                            Powered by <strong>Google Gemini 3.5 Flash</strong> via OpenRouter.
-                            This model is optimized for speed and accuracy in categorizing your bookmarks.
+                            Powered by <strong>Google Gemini</strong> via OpenRouter.
+                            Choose your preferred model for optimal performance.
                         </span>
                     </p>
                 </div>
             </div>
+
+            {/* Model Selector */}
+            {status === 'idle' && (
+                <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(30, 41, 59, 0.4)', borderRadius: '8px', border: '1px solid #334155' }}>
+                    <label style={{ display: 'block', marginBottom: '0.75rem', color: '#e2e8f0', fontSize: '0.9rem', fontWeight: '500' }}>
+                        🎯 Select AI Model
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem', background: '#1e293b', borderRadius: '8px', border: '1px solid #334155' }}>
+                        {models.map((model) => (
+                            <button
+                                key={model.id}
+                                onClick={() => handleModelChange(model.id)}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.6rem 0.8rem',
+                                    borderRadius: '6px',
+                                    border: 'none',
+                                    background: selectedModel === model.id ? 'linear-gradient(to right, #6366f1, #a855f7)' : 'transparent',
+                                    color: selectedModel === model.id ? '#fff' : '#94a3b8',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: selectedModel === model.id ? '600' : '500',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: selectedModel === model.id ? '0 0 12px rgba(99, 102, 241, 0.4)' : 'none'
+                                }}
+                            >
+                                {model.label}
+                            </button>
+                        ))}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.75rem' }}>
+                        ℹ️ 3.5 Flash offers best speed/accuracy balance. Use 2.0-3.0 for faster processing.
+                    </div>
+                </div>
+            )}
 
             {/* Category Editor */}
             {status === 'idle' && (
