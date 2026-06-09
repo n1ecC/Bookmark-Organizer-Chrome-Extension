@@ -1,19 +1,30 @@
 export async function generateSchema(bookmarks, apiKey, baseCategories, model = "google/gemini-3.5-flash") {
     const prompt = `
-    Analyze these ${bookmarks.length} bookmarks. We want to organize them into a simple, usable folder structure that doesn't overwhelm users.
+    You are an expert information architect designing an intuitive bookmark folder structure for a real person's collection of ${bookmarks.length} bookmarks.
 
-    Preferred base categories: ${JSON.stringify(baseCategories)}
+    GOAL
+    Design a clean two-level structure: broad top-level CATEGORIES, each holding nested SUB-CATEGORIES. A person should glance at the folders and instantly know where any link lives — like a well-organized bookshelf, not a sprawling database.
 
-    Please generate a schema of categories and sub-categories. Follow these rules STRICTLY:
-    1. Evaluate the actual bookmarks provided and intelligently determine how many sub-categories are truly needed.
-    2. Minimize sub-folders by consolidating related items. Group "Tech News", "Tech Blogs", "Tech Articles", "Tech Reports" into one or two broad folders instead of four.
-    3. Use contextual intelligence: if bookmarks are similar in intent/purpose, they belong together. Accept imperfect grouping for usability.
-    4. Avoid creating sub-categories with only 1-2 bookmarks - group them with related items instead.
-    5. Target: Keep sub-categories per category between 2-6 for most categories. Only go higher if the bookmark volume truly demands it (15+ bookmarks per subcategory is acceptable).
-    6. Keep the total number of categories to 8-10.
-    7. This is a usability tool, not a filing system. Err on the side of fewer folders.
+    PREFERRED TOP-LEVEL CATEGORIES (a starting point — adapt to the actual bookmarks):
+    ${JSON.stringify(baseCategories)}
 
-    Return JSON object:
+    STRUCTURE RULES
+    1. Top-level categories: aim for 8-10 broad, clearly distinct categories. Every bookmark must have a natural home.
+    2. Sub-categories per category: aim for roughly 10 sub-folders inside each category (about 8-12 is the sweet spot). Enough to be genuinely useful, few enough to scan at a glance. Scale to the content — a content-heavy category can carry a few more, a sparse one fewer.
+    3. NON-REDUNDANCY IS CRITICAL. Sub-categories within a category MUST be mutually exclusive. Never create near-duplicates or synonyms as separate folders. Collapse "Tech News" + "Tech Articles" + "Tech Blogs" + "Tech Reports" into ONE folder. Collapse "Career Advice" + "Career Pathways" + "Career Roles" into ONE folder. Collapse "JS" + "JavaScript" into ONE. If two folder names could plausibly hold the same bookmark, merge them.
+    4. Group by the user's INTENT, not surface keywords. Ask "why did they save this?" Links saved for the same purpose belong together even when their titles look different.
+
+    NAMING RULES
+    5. Use clear, human, real-world names a non-technical person understands. Prefer "Job Search" over "Career Acquisition Pipeline".
+    6. Keep names short (1-3 words), in Title Case. No emojis, no numbering, no slashes.
+    7. A folder's contents should be obvious from its name alone.
+
+    QUALITY BAR
+    8. No orphan folders: every sub-category should plausibly hold several bookmarks. Never create a folder for a single link — merge it into the nearest fit.
+    9. Categories themselves must not overlap either. Each bookmark should have exactly ONE obvious destination, never two or three.
+    10. Outliers that don't fit cleanly are fine — they belong in a "General" sub-folder or an "Other" category. Do NOT distort the structure to force-fit them.
+
+    OUTPUT — return ONLY this JSON, no markdown fences, no commentary:
     {
       "categories": [
         {
@@ -23,7 +34,7 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
       ]
     }
 
-    Bookmarks:
+    BOOKMARKS TO ANALYZE:
     ${JSON.stringify(bookmarks.map(b => ({ title: b.title, url: b.url })))}
     `;
 
@@ -40,8 +51,9 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
                 },
                 body: JSON.stringify({
                     model: model,
+                    temperature: 0.2,
                     messages: [
-                        { role: "system", content: "You are a precise JSON generator. Output only valid JSON. Do not use Markdown blocks." },
+                        { role: "system", content: "You are an expert information architect and precise JSON generator. Output only valid JSON. Do not use Markdown blocks." },
                         { role: "user", content: prompt }
                     ],
                     response_format: { type: "json_object" }
@@ -74,20 +86,21 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
 
 export async function classifyBatch(bookmarks, apiKey, schema, model = "google/gemini-3.5-flash") {
     const prompt = `
-    Classify these ${bookmarks.length} bookmarks.
+    Classify these ${bookmarks.length} bookmarks into the fixed folder structure below.
 
-    You MUST classify each bookmark into one of the categories and sub-categories defined in this schema:
+    APPROVED SCHEMA (the ONLY categories and sub-categories you may use):
     ${JSON.stringify(schema)}
 
-    For each bookmark, select the most appropriate category and sub_category from the schema.
-    If a bookmark does not fit any sub-category, use "General" as the sub_category.
-    If a bookmark does not fit any category at all, classify it under "Other" (with sub_category "General").
-    Do NOT invent any new categories or sub-categories.
+    RULES
+    1. For each bookmark, pick the single best-fitting category and sub_category, judging by the user's likely INTENT in saving it — not just keyword matching on the title.
+    2. You MUST use category and sub_category strings EXACTLY as written in the schema above (same spelling, casing, spacing). Do not paraphrase or invent variants.
+    3. If a bookmark fits a category but no sub-category within it, use "General" as the sub_category.
+    4. If a bookmark fits no category at all, classify it as category "Other" with sub_category "General".
+    5. Every bookmark must be classified exactly once. Preserve each bookmark's original title and url verbatim.
 
-    Return JSON object: { "classified": [ {title, url, category, sub_category} ] }
-    PRESERVE ALL FIELDS.
+    Return JSON object: { "classified": [ { "title": "...", "url": "...", "category": "...", "sub_category": "..." } ] }
 
-    Bookmarks:
+    BOOKMARKS:
     ${JSON.stringify(bookmarks.map(b => ({ title: b.title, url: b.url })))}
     `;
 
@@ -105,8 +118,9 @@ export async function classifyBatch(bookmarks, apiKey, schema, model = "google/g
                 },
                 body: JSON.stringify({
                     model: model,
+                    temperature: 0.1,
                     messages: [
-                        { role: "system", content: "You are a precise JSON generator. Output only valid JSON. Do not use Markdown blocks." },
+                        { role: "system", content: "You are a precise classification engine and JSON generator. Output only valid JSON. Do not use Markdown blocks." },
                         { role: "user", content: prompt }
                     ],
                     response_format: { type: "json_object" }
