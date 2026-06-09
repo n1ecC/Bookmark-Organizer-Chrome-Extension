@@ -172,7 +172,7 @@ export default function Organizer() {
     }
 
     return (
-        <div className="glass-panel" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem', textAlign: 'left' }}>
+        <div className="glass-panel" style={{ width: '100%', padding: '2rem', textAlign: 'left', boxSizing: 'border-box' }}>
 
             {/* API Key Input */}
             <div style={{ marginBottom: '2rem' }}>
