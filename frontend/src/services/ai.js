@@ -1,22 +1,24 @@
 export async function generateSchema(bookmarks, apiKey, baseCategories, model = "google/gemini-3.5-flash") {
     const prompt = `
-    Analyze these ${bookmarks.length} bookmarks. We want to organize them into a clean, concise, and non-redundant folder structure (categories and sub-categories).
+    Analyze these ${bookmarks.length} bookmarks. We want to organize them into a simple, usable folder structure that doesn't overwhelm users.
 
     Preferred base categories: ${JSON.stringify(baseCategories)}
 
-    Please generate a schema of categories and sub-categories. Follow these rules:
-    1. Minimize the number of folders. Do not create folders with very few bookmarks if they can be grouped into a broader category.
-    2. Avoid redundant, overlapping, or synonymous categories/sub-categories (e.g. do not create both "JS" and "JavaScript", or "Cooking" and "Recipes").
-    3. Limit the total number of categories to at most 10.
-    4. Limit the sub-categories per category to at most 4.
-    5. Every category should have a sub_categories list (which can include "General" or be empty if no sub-categories are needed).
+    Please generate a schema of categories and sub-categories. Follow these rules STRICTLY:
+    1. Evaluate the actual bookmarks provided and intelligently determine how many sub-categories are truly needed.
+    2. Minimize sub-folders by consolidating related items. Group "Tech News", "Tech Blogs", "Tech Articles", "Tech Reports" into one or two broad folders instead of four.
+    3. Use contextual intelligence: if bookmarks are similar in intent/purpose, they belong together. Accept imperfect grouping for usability.
+    4. Avoid creating sub-categories with only 1-2 bookmarks - group them with related items instead.
+    5. Target: Keep sub-categories per category between 2-6 for most categories. Only go higher if the bookmark volume truly demands it (15+ bookmarks per subcategory is acceptable).
+    6. Keep the total number of categories to 8-10.
+    7. This is a usability tool, not a filing system. Err on the side of fewer folders.
 
     Return JSON object:
     {
       "categories": [
         {
           "name": "Category Name",
-          "sub_categories": ["Sub-category A", "Sub-category B"]
+          "sub_categories": ["Subcategory A", "Subcategory B"]
         }
       ]
     }
