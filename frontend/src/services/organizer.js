@@ -3,10 +3,11 @@ import { generateSchema, classifyBatch } from './ai';
 import { downloadBookmarks } from './bookmarks_export';
 
 export class OrganizerService {
-    constructor(apiKey, categories, onProgress) {
+    constructor(apiKey, categories, onProgress, model = "google/gemini-3.5-flash") {
         this.apiKey = apiKey;
         this.categories = categories;
         this.onProgress = onProgress || (() => { });
+        this.model = model;
         this.batchSize = 35;
         this.isCancelled = false;
     }
@@ -52,7 +53,7 @@ export class OrganizerService {
         
         let schema;
         try {
-            schema = await generateSchema(allLinks, this.apiKey, this.categories);
+            schema = await generateSchema(allLinks, this.apiKey, this.categories, this.model);
             this.onProgress({ status: 'info', message: '✨ Generated category schema:' });
             if (schema && schema.categories) {
                 schema.categories.forEach(cat => {
@@ -104,7 +105,7 @@ export class OrganizerService {
             });
 
             try {
-                const classified = await classifyBatch(batchData, this.apiKey, schema);
+                const classified = await classifyBatch(batchData, this.apiKey, schema, this.model);
 
                 // Accumulate results
                 results[index] = classified;
