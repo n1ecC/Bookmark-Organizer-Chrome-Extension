@@ -1,3 +1,30 @@
+// Shared request headers. OpenRouter recommends identifying the calling app.
+const OR_HEADERS = (apiKey) => ({
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${apiKey}`,
+    "X-Title": "AI Bookmark Organizer"
+});
+
+// Robustly pull a JSON object out of a model response that may include
+// markdown fences, leading prose, or trailing junk. Throws if no object found.
+function extractJson(content) {
+    let text = (content || "").trim();
+
+    // Strip markdown code fences if present
+    if (text.includes("```")) {
+        text = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    }
+
+    // Slice from the first "{" to the last "}" — drops any prose around it
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start !== -1 && end !== -1 && end > start) {
+        text = text.slice(start, end + 1);
+    }
+
+    return JSON.parse(text);
+}
+
 export async function generateSchema(bookmarks, apiKey, baseCategories, model = "google/gemini-3.5-flash") {
     const prompt = `
     You are an expert information architect designing an intuitive bookmark folder structure for a real person's collection of ${bookmarks.length} bookmarks.
@@ -45,13 +72,11 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
         try {
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`
-                },
+                headers: OR_HEADERS(apiKey),
                 body: JSON.stringify({
                     model: model,
                     temperature: 0.2,
+                    max_tokens: 8000,
                     messages: [
                         { role: "system", content: "You are an expert information architect and precise JSON generator. Output only valid JSON. Do not use Markdown blocks." },
                         { role: "user", content: prompt }
@@ -66,14 +91,10 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
             }
 
             const data = await response.json();
-            let content = data.choices[0].message.content;
+            const content = data.choices?.[0]?.message?.content;
+            if (!content) throw new Error("Empty response from model");
 
-            if (content.includes("```")) {
-                content = content.replace(/```json/g, "").replace(/```/g, "");
-            }
-
-            const parsed = JSON.parse(content.trim());
-            return parsed;
+            return extractJson(content);
 
         } catch (err) {
             console.error(`Attempt ${i + 1} failed:`, err);
@@ -112,13 +133,11 @@ export async function classifyBatch(bookmarks, apiKey, schema, model = "google/g
             // OpenRouter
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`
-                },
+                headers: OR_HEADERS(apiKey),
                 body: JSON.stringify({
                     model: model,
                     temperature: 0.1,
+                    max_tokens: 8000,
                     messages: [
                         { role: "system", content: "You are a precise classification engine and JSON generator. Output only valid JSON. Do not use Markdown blocks." },
                         { role: "user", content: prompt }
@@ -133,13 +152,10 @@ export async function classifyBatch(bookmarks, apiKey, schema, model = "google/g
             }
 
             const data = await response.json();
-            let content = data.choices[0].message.content;
+            const content = data.choices?.[0]?.message?.content;
+            if (!content) throw new Error("Empty response from model");
 
-            if (content.includes("```")) {
-                content = content.replace(/```json/g, "").replace(/```/g, "");
-            }
-
-            const parsed = JSON.parse(content);
+            const parsed = extractJson(content);
             return parsed.classified || [];
 
         } catch (err) {
