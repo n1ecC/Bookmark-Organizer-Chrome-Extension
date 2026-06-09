@@ -15,9 +15,9 @@ export default function Organizer() {
     // Model Selection
     const [selectedModel, setSelectedModel] = useState('google/gemini-3.5-flash')
     const models = [
-        { id: 'google/gemini-2.0-flash', label: '2.0 Flash' },
         { id: 'google/gemini-2.5-flash', label: '2.5 Flash' },
-        { id: 'google/gemini-3.0-flash', label: '3.0 Flash' },
+        { id: 'google/gemini-2.5-pro', label: '2.5 Pro' },
+        { id: 'google/gemini-3.1-flash-lite', label: '3.1 Flash Lite' },
         { id: 'google/gemini-3.5-flash', label: '3.5 Flash' }
     ]
 
