@@ -1,5 +1,5 @@
-import { getBookmarks, flattenBookmarks, createBookmark, findOrCreateFolder } from './bookmarks';
-import { classifyBatch } from './ai';
+import { getBookmarks, flattenBookmarks, createBookmark, findOrCreateFolder, clearFolderCache, shouldCreateSubFolder } from './bookmarks';
+import { generateSchema, classifyBatch } from './ai';
 import { downloadBookmarks } from './bookmarks_export';
 
 export class OrganizerService {
@@ -47,6 +47,29 @@ export class OrganizerService {
             return;
         }
 
+        // --- Phase 1: Generate Schema ---
+        this.onProgress({ status: 'info', message: '🧠 Analyzing bookmarks to generate a clean, non-redundant folder structure...' });
+        
+        let schema;
+        try {
+            schema = await generateSchema(allLinks, this.apiKey, this.categories);
+            this.onProgress({ status: 'info', message: '✨ Generated category schema:' });
+            if (schema && schema.categories) {
+                schema.categories.forEach(cat => {
+                    const subCats = cat.sub_categories && cat.sub_categories.length > 0 
+                        ? ` (${cat.sub_categories.join(', ')})` 
+                        : '';
+                    this.onProgress({ status: 'info', message: `  • ${cat.name}${subCats}` });
+                });
+            }
+        } catch (err) {
+            console.error('Schema generation failed, falling back to basic categories:', err);
+            this.onProgress({ status: 'warning', message: '⚠️ Schema generation failed. Using default categories.' });
+            schema = {
+                categories: this.categories.map(c => ({ name: c, sub_categories: [] }))
+            };
+        }
+
         let rootFolder = null;
         if (!fileBookmarks) {
             this.onProgress({ status: 'info', message: '📁 Creating output directory...' });
@@ -81,29 +104,10 @@ export class OrganizerService {
             });
 
             try {
-                const classified = await classifyBatch(batchData, this.apiKey, this.categories);
+                const classified = await classifyBatch(batchData, this.apiKey, schema);
 
-                if (fileBookmarks) {
-                    results[index] = classified;
-                } else {
-                    // Browser mode: Save immediately
-                    this.onProgress({ status: 'info', message: `Saving ${classified.length} bookmarks...` });
-                    for (const item of classified) {
-                        if (this.isCancelled) break;
-                        if (!item.category) item.category = "Uncategorized";
-
-                        const catFolder = await findOrCreateFolder(rootFolder.id, item.category);
-                        let targetParentId = catFolder.id;
-
-                        if (item.sub_category) {
-                            const subFolder = await findOrCreateFolder(catFolder.id, item.sub_category);
-                            targetParentId = subFolder.id;
-                        }
-
-                        await createBookmark(targetParentId, item.title, item.url);
-                    }
-                }
-
+                // Accumulate results
+                results[index] = classified;
                 processed += batchData.length;
                 this.onProgress({ status: 'progress', percent: Math.min(100, Math.round((processed / total) * 100)) });
 
@@ -123,10 +127,57 @@ export class OrganizerService {
         }
         await Promise.all(workers);
 
-        if (fileBookmarks && !this.isCancelled) {
+        if (this.isCancelled) {
+            this.onProgress({ status: 'warning', message: 'Process cancelled.' });
+            return;
+        }
+
+        const finalResults = results.flat().filter(Boolean);
+
+        if (fileBookmarks) {
             this.onProgress({ status: 'info', message: '💾 Generating organized file...' });
-            const finalResults = results.flat().filter(Boolean);
             downloadBookmarks(finalResults);
+        } else {
+            // Browser mode: Save all sequentially at the end
+            this.onProgress({ status: 'info', message: `💾 Saving ${finalResults.length} bookmarks to browser...` });
+            
+            // Clean up the folder cache before starting the write operation
+            clearFolderCache();
+
+            // To avoid duplicate folder creation and empty folders:
+            const createdFolders = {}; // path key -> folder Object
+
+            for (const item of finalResults) {
+                if (this.isCancelled) break;
+                
+                const category = item.category || "Uncategorized";
+                
+                // Find or create category folder
+                let catFolder;
+                if (createdFolders[category]) {
+                    catFolder = createdFolders[category];
+                } else {
+                    catFolder = await findOrCreateFolder(rootFolder.id, category);
+                    createdFolders[category] = catFolder;
+                }
+                
+                let targetParentId = catFolder.id;
+                
+                const subCategory = item.sub_category;
+                if (shouldCreateSubFolder(category, subCategory)) {
+                    const subPath = `${category}/${subCategory}`;
+                    let subFolder;
+                    if (createdFolders[subPath]) {
+                        subFolder = createdFolders[subPath];
+                    } else {
+                        subFolder = await findOrCreateFolder(catFolder.id, subCategory);
+                        createdFolders[subPath] = subFolder;
+                    }
+                    targetParentId = subFolder.id;
+                }
+                
+                await createBookmark(targetParentId, item.title, item.url);
+            }
         }
 
         if (this.isCancelled) {

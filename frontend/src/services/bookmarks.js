@@ -62,17 +62,42 @@ export async function moveBookmark(id, parentId) {
     });
 }
 
+let folderCache = {};
+
+export function clearFolderCache() {
+    folderCache = {};
+}
+
+export function shouldCreateSubFolder(category, subCategory) {
+    if (!subCategory) return false;
+    const sub = subCategory.trim().toLowerCase();
+    const cat = category.trim().toLowerCase();
+    return sub !== '' && sub !== 'general' && sub !== 'none' && sub !== 'uncategorized' && sub !== cat;
+}
+
 export async function findOrCreateFolder(parentId, title) {
-    return new Promise((resolve) => {
+    const key = `${parentId}_${title}`;
+    if (folderCache[key]) {
+        return folderCache[key];
+    }
+
+    const promise = new Promise((resolve, reject) => {
         chrome.bookmarks.getChildren(parentId, (children) => {
-            const existing = children.find(c => c.title === title && !c.url);
+            if (chrome.runtime.lastError) {
+                createFolder(parentId, title).then(resolve).catch(reject);
+                return;
+            }
+            const existing = children?.find(c => c.title === title && !c.url);
             if (existing) {
                 resolve(existing);
             } else {
-                createFolder(parentId, title).then(resolve);
+                createFolder(parentId, title).then(resolve).catch(reject);
             }
         });
     });
+
+    folderCache[key] = promise;
+    return promise;
 }
 
 export async function organizeBookmarksResult(classifiedBookmarks) {
