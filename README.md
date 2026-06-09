@@ -13,8 +13,10 @@ Organize your messy bookmarks automatically using Google Gemini AI. Privacy-focu
 
 You can install this extension manually (no Store required) by downloading the latest release.
 
+**➡️ [Download the latest release](https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension/releases/latest)** — or grab the zip directly: **[bookmark-organizer-v1.0.1.zip](https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension/releases/download/v1.0.1/bookmark-organizer-v1.0.1.zip)**
+
 ### Method 1: Download & Install (Easiest)
-1.  **Download**: Go to the `releases/` folder above and download **[bookmark_organizer_v1.0.1.zip](releases/bookmark_organizer_v1.0.1.zip)**.
+1.  **Download**: Grab **[bookmark-organizer-v1.0.1.zip](https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension/releases/download/v1.0.1/bookmark-organizer-v1.0.1.zip)** from the [Releases page](https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension/releases/latest).
 2.  **Unzip**: Extract the zip file to a folder on your computer.
 3.  **Open Chrome Extensions**:
     - Type `chrome://extensions` in your address bar.
