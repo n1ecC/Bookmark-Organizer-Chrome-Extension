@@ -1,24 +1,95 @@
-:root {
-  --bg-color: #0f172a;
-  --text-color: #f8fafc;
-  --accent-color: #6366f1;
-  --accent-glow: rgba(99, 102, 241, 0.5);
-  --glass-bg: rgba(30, 41, 59, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --success-color: #10b981;
-  --error-color: #ef4444;
+/* ===========================================================
+   Theme tokens — palette derived from the app icon
+   (cool slate-blue, muted lavender-grays, soft gray-blue bg)
+   Dark is the default; light is opt-in via [data-theme="light"].
+   =========================================================== */
+
+:root[data-theme="dark"] {
+  --bg: #0e1217;
+  --bg-grad-1: rgba(124, 143, 176, 0.12);
+  --bg-grad-2: rgba(95, 110, 135, 0.10);
+
+  --surface: rgba(26, 32, 42, 0.72);
+  --surface-solid: #161b23;
+  --surface-alt: rgba(26, 32, 42, 0.45);
+
+  --border: #2b3543;
+  --border-strong: #3a4756;
+
+  --text-primary: #eef1f6;
+  --text-secondary: #a6b2c4;
+  --text-muted: #6a7689;
+
+  --accent: #8295b8;
+  --accent-hover: #9aabc9;
+  --accent-soft: rgba(130, 149, 184, 0.14);
+  --accent-gradient: linear-gradient(135deg, #6d82a8, #97a8c8);
+  --accent-glow: rgba(130, 149, 184, 0.35);
+  --on-accent: #ffffff;
+
+  --success: #4ea88a;
+  --success-soft: rgba(78, 168, 138, 0.12);
+  --error: #e07a7a;
+  --error-soft: rgba(224, 122, 122, 0.12);
+
+  --terminal-bg: #080b10;
+  --terminal-text: #8fa2c4;
+  --terminal-muted: #5b6678;
+}
+
+:root,
+:root[data-theme="light"] {
+  --bg: #e9ecf2;
+  --bg-grad-1: rgba(124, 143, 176, 0.10);
+  --bg-grad-2: rgba(155, 168, 196, 0.16);
+
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-solid: #f5f7fb;
+  --surface-alt: rgba(255, 255, 255, 0.6);
+
+  --border: #ccd4e0;
+  --border-strong: #b1bccd;
+
+  --text-primary: #2f3a4a;
+  --text-secondary: #57667a;
+  --text-muted: #8390a2;
+
+  --accent: #5b6b82;
+  --accent-hover: #495872;
+  --accent-soft: rgba(91, 107, 130, 0.12);
+  --accent-gradient: linear-gradient(135deg, #5b6b82, #8294ad);
+  --accent-glow: rgba(91, 107, 130, 0.22);
+  --on-accent: #ffffff;
+
+  --success: #3d9479;
+  --success-soft: rgba(61, 148, 121, 0.12);
+  --error: #c45656;
+  --error-soft: rgba(196, 86, 86, 0.10);
+
+  /* Keep the terminal a dark slate panel even in light mode —
+     reads like a code block on a light page. */
+  --terminal-bg: #232c39;
+  --terminal-text: #9fb0cf;
+  --terminal-muted: #6f7c90;
+}
+
+/* Smooth theme transition for color-bearing properties only */
+*,
+*::before,
+*::after {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
 }
 
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: var(--bg);
+  color: var(--text-primary);
   min-height: 100vh;
   min-width: 100vw;
   background-image:
-    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 20%);
+    radial-gradient(circle at 10% 20%, var(--bg-grad-1) 0%, transparent 22%),
+    radial-gradient(circle at 90% 80%, var(--bg-grad-2) 0%, transparent 22%);
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -31,35 +102,36 @@ body {
   box-sizing: border-box;
 }
 
-/* Glassmorphism Utilities */
+/* Minimalist panel — soft surface, subtle border, gentle blur */
 .glass-panel {
-  background: var(--glass-bg);
+  background: var(--surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 24px rgba(15, 20, 30, 0.06);
 }
 
 .btn-primary {
-  background: var(--accent-color);
-  color: white;
+  background: var(--accent-gradient);
+  color: var(--on-accent);
   border: none;
   padding: 0.8rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 15px var(--accent-glow);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 2px 14px var(--accent-glow);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 25px var(--accent-glow);
+  box-shadow: 0 4px 22px var(--accent-glow);
 }
 
 .btn-primary:disabled {
-  background: #475569;
+  background: var(--border-strong);
+  color: var(--text-muted);
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
@@ -92,10 +164,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--border-strong);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--text-muted);
 }
