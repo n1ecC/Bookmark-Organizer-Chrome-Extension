@@ -89,7 +89,7 @@ export default function Organizer() {
                 setUploadedFile(file);
                 setParsedBookmarks(links);
                 setErrorMsg('');
-                setLogs(prev => [...prev, `📂 Loaded ${file.name} (${links.length} bookmarks found)`]);
+                addLog(`📂 Loaded ${file.name} (${links.length} bookmarks found)`);
             } catch (err) {
                 console.error(err);
                 setErrorMsg("Failed to parse bookmarks file.");
@@ -115,6 +115,10 @@ export default function Organizer() {
         }
     }, [logs])
 
+    const addLog = (message) => {
+        setLogs(prev => [...prev, { message, timestamp: new Date() }])
+    }
+
     const resetApp = () => {
         setStatus('idle')
         setLogs([])
@@ -135,8 +139,8 @@ export default function Organizer() {
             setStatus('processing')
             const selectedModelLabel = models.find(m => m.id === selectedModel)?.label || selectedModel
             setLogs([
-                '🚀 Starting AI Organization...',
-                `🤖 Using Model: Google Gemini ${selectedModelLabel}`
+                { message: '🚀 Starting AI Organization...', timestamp: new Date() },
+                { message: `🤖 Using Model: Google Gemini ${selectedModelLabel}`, timestamp: new Date() }
             ])
             setProgress(0)
             setErrorMsg('')
@@ -146,18 +150,18 @@ export default function Organizer() {
                 categories,
                 (data) => {
                     if (data.status === 'info') {
-                        setLogs(prev => [...prev, `ℹ️ ${data.message}`])
+                        addLog(`ℹ️ ${data.message}`)
                     } else if (data.status === 'progress') {
                         setProgress(data.percent)
                     } else if (data.status === 'warning') {
-                        setLogs(prev => [...prev, `⚠️ ${data.message}`])
+                        addLog(`⚠️ ${data.message}`)
                     } else if (data.status === 'error') {
                         setErrorMsg(data.message)
                         setStatus('error')
                     } else if (data.status === 'success') {
-                        setLogs(prev => [...prev, `🎉 ${data.message}`])
+                        addLog(`🎉 ${data.message}`)
                     } else if (data.status === 'done') {
-                        setLogs(prev => [...prev, `✅ ${data.message}`])
+                        addLog(`✅ ${data.message}`)
                         setStatus('complete')
                         setProgress(100)
                     }
@@ -249,7 +253,7 @@ export default function Organizer() {
                         ))}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.75rem' }}>
-                        ℹ️ 3.5 Flash offers best speed/accuracy balance. Use 2.0-3.0 for faster processing.
+                        ℹ️ 3.5 Flash: best accuracy. 2.5 Flash: faster & efficient. 3.1 Lite: lightweight option.
                     </div>
                 </div>
             )}
@@ -476,8 +480,10 @@ export default function Organizer() {
 
                 {logs.map((log, index) => (
                     <div key={index} style={{ marginBottom: '0.25rem' }}>
-                        <span style={{ color: '#64748b', marginRight: '0.5rem' }}>{new Date().toLocaleTimeString()}</span>
-                        {log}
+                        <span style={{ color: '#64748b', marginRight: '0.5rem' }}>
+                            {typeof log === 'object' ? log.timestamp.toLocaleTimeString() : new Date().toLocaleTimeString()}
+                        </span>
+                        {typeof log === 'object' ? log.message : log}
                     </div>
                 ))}
                 {status === 'processing' && (
