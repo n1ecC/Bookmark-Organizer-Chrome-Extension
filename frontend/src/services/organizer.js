@@ -1,5 +1,5 @@
-import { getBookmarks, flattenBookmarks, createBookmark, findOrCreateFolder, clearFolderCache, shouldCreateSubFolder } from './bookmarks';
-import { generateSchema, classifyBatch } from './ai';
+import { getBookmarks, createBookmark, findOrCreateFolder, clearFolderCache, shouldCreateSubFolder } from './bookmarks';
+import { generateSchema, classifyBatch, SCHEMA_SAMPLE_LIMIT } from './ai';
 import { downloadBookmarks } from './bookmarks_export';
 
 export class OrganizerService {
@@ -66,6 +66,9 @@ export class OrganizerService {
 
         // --- Phase 1: Generate Schema ---
         this.onProgress({ status: 'info', message: '🧠 Analyzing bookmarks to generate a clean, non-redundant folder structure...' });
+        if (allLinks.length > SCHEMA_SAMPLE_LIMIT) {
+            this.onProgress({ status: 'info', message: `📊 Large collection: designing the folder structure from a sample of ${SCHEMA_SAMPLE_LIMIT.toLocaleString()} of ${allLinks.length.toLocaleString()} bookmarks. All bookmarks will still be classified.` });
+        }
 
         let schema;
         try {
