@@ -25,7 +25,15 @@ function extractJson(content) {
     return JSON.parse(text);
 }
 
-export async function generateSchema(bookmarks, apiKey, baseCategories, model = "google/gemini-3.5-flash") {
+export async function generateSchema(bookmarks, apiKey, baseCategories, model = "google/gemini-3.5-flash", subfolderTarget = "5-10") {
+    const subfolderRules = {
+        '0-5': 'aim for roughly 3-5 sub-folders inside each category. Keep it minimal — only create subfolders for truly distinct groups. Err on the side of combining related items into broader folders.',
+        '5-10': 'aim for roughly 5-10 sub-folders inside each category (about 7-8 is the sweet spot). Enough to be genuinely useful, few enough to scan at a glance. Scale to the content — a content-heavy category can carry more, a sparse one fewer.',
+        '10+': 'aim for 10+ sub-folders inside each category where needed. Be generous with creating specific subfolders for different topics, ensuring each bookmark has a precise home.'
+    };
+
+    const subfolderGuidance = subfolderRules[subfolderTarget] || subfolderRules['5-10'];
+
     const prompt = `
     You are an expert information architect designing an intuitive bookmark folder structure for a real person's collection of ${bookmarks.length} bookmarks.
 
@@ -37,7 +45,7 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
 
     STRUCTURE RULES
     1. Top-level categories: aim for 8-10 broad, clearly distinct categories. Every bookmark must have a natural home.
-    2. Sub-categories per category: aim for roughly 10 sub-folders inside each category (about 8-12 is the sweet spot). Enough to be genuinely useful, few enough to scan at a glance. Scale to the content — a content-heavy category can carry a few more, a sparse one fewer.
+    2. Sub-categories per category: ${subfolderGuidance}
     3. NON-REDUNDANCY IS CRITICAL. Sub-categories within a category MUST be mutually exclusive. Never create near-duplicates or synonyms as separate folders. Collapse "Tech News" + "Tech Articles" + "Tech Blogs" + "Tech Reports" into ONE folder. Collapse "Career Advice" + "Career Pathways" + "Career Roles" into ONE folder. Collapse "JS" + "JavaScript" into ONE. If two folder names could plausibly hold the same bookmark, merge them.
     4. Group by the user's INTENT, not surface keywords. Ask "why did they save this?" Links saved for the same purpose belong together even when their titles look different.
 
