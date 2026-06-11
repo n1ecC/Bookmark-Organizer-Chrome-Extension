@@ -3,11 +3,12 @@ import { generateSchema, classifyBatch } from './ai';
 import { downloadBookmarks } from './bookmarks_export';
 
 export class OrganizerService {
-    constructor(apiKey, categories, onProgress, model = "google/gemini-3.5-flash") {
+    constructor(apiKey, categories, onProgress, model = "google/gemini-3.5-flash", subfolderTarget = "5-10") {
         this.apiKey = apiKey;
         this.categories = categories;
         this.onProgress = onProgress || (() => { });
         this.model = model;
+        this.subfolderTarget = subfolderTarget;
         this.batchSize = 35;
         this.isCancelled = false;
     }
@@ -50,10 +51,10 @@ export class OrganizerService {
 
         // --- Phase 1: Generate Schema ---
         this.onProgress({ status: 'info', message: '🧠 Analyzing bookmarks to generate a clean, non-redundant folder structure...' });
-        
+
         let schema;
         try {
-            schema = await generateSchema(allLinks, this.apiKey, this.categories, this.model);
+            schema = await generateSchema(allLinks, this.apiKey, this.categories, this.model, this.subfolderTarget);
             this.onProgress({ status: 'info', message: '✨ Generated category schema:' });
             if (schema && schema.categories) {
                 schema.categories.forEach(cat => {
