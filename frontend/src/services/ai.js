@@ -67,6 +67,19 @@ async function withRetry(fn, maxRetries = 3, initialDelayMs = 1000) {
     throw lastError;
 }
 
+// Schema design only needs a representative spread of the collection, not every
+// bookmark. Beyond this limit the prompt would blow past model context windows
+// (e.g. 17k bookmarks ≈ several MB of prompt) and hang or fail the request.
+export const SCHEMA_SAMPLE_LIMIT = 1000;
+
+// Evenly spaced sample across the whole list. Bookmark exports are grouped by
+// folder, so spacing preserves topic variety better than taking the first N.
+function sampleForSchema(bookmarks) {
+    if (bookmarks.length <= SCHEMA_SAMPLE_LIMIT) return bookmarks;
+    const step = bookmarks.length / SCHEMA_SAMPLE_LIMIT;
+    return Array.from({ length: SCHEMA_SAMPLE_LIMIT }, (_, i) => bookmarks[Math.floor(i * step)]);
+}
+
 export async function generateSchema(bookmarks, apiKey, baseCategories, model = "google/gemini-3.5-flash", subfolderTarget = "5-10") {
     const subfolderRules = {
         '0-5': 'aim for roughly 3-5 sub-folders inside each category. Keep it minimal — only create subfolders for truly distinct groups. Err on the side of combining related items into broader folders.',
@@ -76,8 +89,14 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
 
     const subfolderGuidance = subfolderRules[subfolderTarget] || subfolderRules['5-10'];
 
+    const schemaSource = sampleForSchema(bookmarks);
+    const sampleNote = schemaSource.length < bookmarks.length
+        ? `\n    NOTE: The list below is a representative sample of ${schemaSource.length} bookmarks drawn evenly from the full collection. Design the structure for the ENTIRE collection of ${bookmarks.length}.\n`
+        : '';
+
     const prompt = `
     You are an expert information architect designing an intuitive bookmark folder structure for a real person's collection of ${bookmarks.length} bookmarks.
+    ${sampleNote}
 
     GOAL
     Design a clean two-level structure: broad top-level CATEGORIES, each holding nested SUB-CATEGORIES. A person should glance at the folders and instantly know where any link lives — like a well-organized bookshelf, not a sprawling database.
@@ -112,7 +131,7 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
     }
 
     BOOKMARKS TO ANALYZE:
-    ${JSON.stringify(bookmarks.map(b => ({ title: b.title, url: b.url })))}
+    ${JSON.stringify(schemaSource.map(b => ({ title: b.title, url: b.url })))}
     `;
 
     return await withRetry(async () => {
