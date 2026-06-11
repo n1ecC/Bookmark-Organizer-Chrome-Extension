@@ -152,9 +152,11 @@ export default function Organizer() {
         try {
             setStatus('processing')
             const selectedModelLabel = models.find(m => m.id === selectedModel)?.label || selectedModel
+            const subfolderLabel = subfolderOptions.find(opt => opt.id === subfolderTarget)?.label || subfolderTarget
             setLogs([
                 { message: '🚀 Starting AI Organization...', timestamp: new Date() },
-                { message: `🤖 Using Model: Google Gemini ${selectedModelLabel}`, timestamp: new Date() }
+                { message: `🤖 Using Model: Google Gemini ${selectedModelLabel}`, timestamp: new Date() },
+                { message: `📁 Subfolder Organization: ${subfolderLabel}`, timestamp: new Date() }
             ])
             setProgress(0)
             setErrorMsg('')
@@ -192,7 +194,7 @@ export default function Organizer() {
             setErrorMsg("Failed to start process.")
             setStatus('error')
         }
-    }, [apiKey, models, selectedModel, categories, addLog, parsedBookmarks, subfolderTarget])
+    }, [apiKey, models, selectedModel, categories, addLog, parsedBookmarks, subfolderTarget, subfolderOptions])
 
     return (
         <div className="glass-panel" style={{ width: '100%', padding: '2rem', textAlign: 'left', boxSizing: 'border-box' }}>
