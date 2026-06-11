@@ -531,11 +531,13 @@ export default function Organizer() {
                 {logs.length === 0 && <span style={{ color: 'var(--terminal-muted)' }}>Waiting for start...</span>}
 
                 {logs.map((log, index) => (
-                    <div key={index} style={{ marginBottom: '0.25rem' }}>
-                        <span style={{ color: 'var(--text-muted)', marginRight: '0.5rem' }}>
+                    <div key={index} style={{ marginBottom: '0.25rem', display: 'flex', gap: '0.5rem' }}>
+                        <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
                             {typeof log === 'object' ? log.timestamp.toLocaleTimeString() : new Date().toLocaleTimeString()}
                         </span>
-                        {typeof log === 'object' ? log.message : log}
+                        <span style={{ overflowWrap: 'anywhere' }}>
+                            {typeof log === 'object' ? log.message : log}
+                        </span>
                     </div>
                 ))}
                 {status === 'processing' && (
