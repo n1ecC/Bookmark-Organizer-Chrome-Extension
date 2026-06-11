@@ -22,7 +22,22 @@ function extractJson(content) {
         text = text.slice(start, end + 1);
     }
 
-    return JSON.parse(text);
+    try {
+        return JSON.parse(text);
+    } catch (firstErr) {
+        // Models sometimes emit raw control characters inside string values
+        // (e.g. a literal newline echoed from a bookmark title), which is
+        // invalid JSON. Replacing every control character with a space is
+        // safe: between tokens it is already whitespace, and inside a string
+        // it repairs the bad literal without losing surrounding text.
+        // eslint-disable-next-line no-control-regex
+        const repaired = text.replace(/[\u0000-\u001F]/g, " ");
+        try {
+            return JSON.parse(repaired);
+        } catch {
+            throw firstErr;
+        }
+    }
 }
 
 // Determine if an error is retryable (transient) vs permanent
