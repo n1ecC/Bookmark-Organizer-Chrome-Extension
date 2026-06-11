@@ -27,6 +27,10 @@ function extractJson(content) {
 
 // Determine if an error is retryable (transient) vs permanent
 function isRetryableError(error, statusCode) {
+    // Explicitly flagged (e.g. malformed/truncated model output): the request
+    // succeeded but the response was unusable — a fresh attempt may differ.
+    if (error?.retryable) return true;
+
     if (!statusCode) {
         // Network/timeout errors are retryable
         const message = error?.message || '';
@@ -36,6 +40,34 @@ function isRetryableError(error, statusCode) {
     // Retryable HTTP status codes:
     // 429 = Rate Limited, 500 = Server Error, 502 = Bad Gateway, 503 = Service Unavailable, 504 = Gateway Timeout
     return [429, 500, 502, 503, 504].includes(statusCode);
+}
+
+// Validate a completion response and extract its JSON payload. Throws errors
+// that name the actual problem (empty / truncated / invalid JSON) and marks
+// them retryable, since a fresh generation may well succeed.
+function parseModelResponse(data) {
+    const choice = data.choices?.[0];
+    const content = choice?.message?.content;
+
+    if (!content) {
+        const error = new Error("model returned an empty response");
+        error.retryable = true;
+        throw error;
+    }
+
+    if (choice.finish_reason === 'length') {
+        const error = new Error("model response was cut off at the max_tokens limit");
+        error.retryable = true;
+        throw error;
+    }
+
+    try {
+        return extractJson(content);
+    } catch (parseErr) {
+        const error = new Error(`model returned invalid JSON (${parseErr.message})`);
+        error.retryable = true;
+        throw error;
+    }
 }
 
 // Generic retry wrapper with exponential backoff
@@ -158,10 +190,7 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
         }
 
         const data = await response.json();
-        const content = data.choices?.[0]?.message?.content;
-        if (!content) throw new Error("Empty response from model");
-
-        return extractJson(content);
+        return parseModelResponse(data);
     });
 }
 
@@ -209,10 +238,7 @@ export async function classifyBatch(bookmarks, apiKey, schema, model = "google/g
         }
 
         const data = await response.json();
-        const content = data.choices?.[0]?.message?.content;
-        if (!content) throw new Error("Empty response from model");
-
-        const parsed = extractJson(content);
+        const parsed = parseModelResponse(data);
         return parsed.classified || [];
     });
 }
