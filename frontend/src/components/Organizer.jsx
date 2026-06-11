@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Terminal, Play, AlertCircle, Plus, X, Bookmark, Upload, FileText } from 'lucide-react'
 import { OrganizerService } from '../services/organizer'
 import { parseBookmarks } from '../utils/parser'
@@ -14,12 +14,12 @@ export default function Organizer() {
 
     // Model Selection
     const [selectedModel, setSelectedModel] = useState('google/gemini-3.5-flash')
-    const models = [
+    const models = useMemo(() => [
         { id: 'google/gemini-2.5-flash', label: '2.5 Flash' },
         { id: 'google/gemini-2.5-pro', label: '2.5 Pro' },
         { id: 'google/gemini-3.1-flash-lite', label: '3.1 Flash Lite' },
         { id: 'google/gemini-3.5-flash', label: '3.5 Flash' }
-    ]
+    ], [])
 
     const [categories, setCategories] = useState([
         "Technology & Coding",
@@ -37,11 +37,11 @@ export default function Organizer() {
 
     // Subfolder Target Size
     const [subfolderTarget, setSubfolderTarget] = useState('5-10')
-    const subfolderOptions = [
+    const subfolderOptions = useMemo(() => [
         { id: '0-5', label: 'Compact (0-5)', description: 'Minimal subfolders' },
         { id: '5-10', label: 'Balanced (5-10)', description: 'Recommended' },
         { id: '10+', label: 'Detailed (10+)', description: 'More specific grouping' }
-    ]
+    ], [])
 
     const logContainerRef = useRef(null)
     const organizerRef = useRef(null)
@@ -58,38 +58,38 @@ export default function Organizer() {
     }, [])
 
     // Save Settings
-    const updateSetting = (key, val) => {
+    const updateSetting = useCallback((key, val) => {
         if (typeof chrome !== 'undefined' && chrome.storage) {
             chrome.storage.local.set({ [key]: val })
         }
-    }
+    }, [])
 
-    const handleApiKeyChange = (val) => {
+    const handleApiKeyChange = useCallback((val) => {
         setApiKey(val)
         updateSetting('apiKey', val)
-    }
+    }, [updateSetting])
 
-    const handleModelChange = (modelId) => {
+    const handleModelChange = useCallback((modelId) => {
         setSelectedModel(modelId)
         updateSetting('selectedModel', modelId)
-    }
+    }, [updateSetting])
 
-    const handleSubfolderTargetChange = (target) => {
+    const handleSubfolderTargetChange = useCallback((target) => {
         setSubfolderTarget(target)
         updateSetting('subfolderTarget', target)
-    }
+    }, [updateSetting])
 
     // File Upload Handlers
     const [uploadedFile, setUploadedFile] = useState(null)
     const [parsedBookmarks, setParsedBookmarks] = useState(null)
     const fileInputRef = useRef(null)
 
-    const handleFileSelect = async (e) => {
+    const handleFileSelect = useCallback(async (e) => {
         const file = e.target.files[0];
         if (file) processFile(file);
-    }
+    }, [])
 
-    const processFile = (file) => {
+    const processFile = useCallback((file) => {
         if (!file.name.endsWith('.html') && !file.name.endsWith('.htm')) {
             setErrorMsg("Please upload a valid bookmarks HTML file.");
             return;
@@ -110,17 +110,17 @@ export default function Organizer() {
             }
         };
         reader.readAsText(file);
-    }
+    }, [])
 
-    const handleDrop = (e) => {
+    const handleDrop = useCallback((e) => {
         e.preventDefault();
         const file = e.dataTransfer.files[0];
         if (file) processFile(file);
-    }
+    }, [processFile])
 
-    const handleDragOver = (e) => {
+    const handleDragOver = useCallback((e) => {
         e.preventDefault();
-    }
+    }, [])
 
     // Auto-scroll logs
     useEffect(() => {
@@ -129,11 +129,11 @@ export default function Organizer() {
         }
     }, [logs])
 
-    const addLog = (message) => {
+    const addLog = useCallback((message) => {
         setLogs(prev => [...prev, { message, timestamp: new Date() }])
-    }
+    }, [])
 
-    const resetApp = () => {
+    const resetApp = useCallback(() => {
         setStatus('idle')
         setLogs([])
         setProgress(0)
@@ -141,9 +141,9 @@ export default function Organizer() {
         setUploadedFile(null)
         setParsedBookmarks(null)
         if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    }, [])
 
-    const startProcess = async () => {
+    const startProcess = useCallback(async () => {
         if (!apiKey) {
             setErrorMsg(`Please enter your OpenRouter API Key.`)
             return
@@ -192,7 +192,7 @@ export default function Organizer() {
             setErrorMsg("Failed to start process.")
             setStatus('error')
         }
-    }
+    }, [apiKey, models, selectedModel, categories, addLog, parsedBookmarks, subfolderTarget])
 
     return (
         <div className="glass-panel" style={{ width: '100%', padding: '2rem', textAlign: 'left', boxSizing: 'border-box' }}>
