@@ -35,15 +35,24 @@ export default function Organizer() {
     ])
     const [newCategory, setNewCategory] = useState('')
 
+    // Subfolder Target Size
+    const [subfolderTarget, setSubfolderTarget] = useState('5-10')
+    const subfolderOptions = [
+        { id: '0-5', label: 'Compact (0-5)', description: 'Minimal subfolders' },
+        { id: '5-10', label: 'Balanced (5-10)', description: 'Recommended' },
+        { id: '10+', label: 'Detailed (10+)', description: 'More specific grouping' }
+    ]
+
     const logContainerRef = useRef(null)
     const organizerRef = useRef(null)
 
     // Load Settings from storage
     useEffect(() => {
         if (typeof chrome !== 'undefined' && chrome.storage) {
-            chrome.storage.local.get(['apiKey', 'selectedModel'], (result) => {
+            chrome.storage.local.get(['apiKey', 'selectedModel', 'subfolderTarget'], (result) => {
                 if (result.apiKey) setApiKey(result.apiKey)
                 if (result.selectedModel) setSelectedModel(result.selectedModel)
+                if (result.subfolderTarget) setSubfolderTarget(result.subfolderTarget)
             })
         }
     }, [])
@@ -63,6 +72,11 @@ export default function Organizer() {
     const handleModelChange = (modelId) => {
         setSelectedModel(modelId)
         updateSetting('selectedModel', modelId)
+    }
+
+    const handleSubfolderTargetChange = (target) => {
+        setSubfolderTarget(target)
+        updateSetting('subfolderTarget', target)
     }
 
     // File Upload Handlers
@@ -166,7 +180,8 @@ export default function Organizer() {
                         setProgress(100)
                     }
                 },
-                selectedModel
+                selectedModel,
+                subfolderTarget
             )
 
             // Pass parsed bookmarks if file mode, otherwise null (browser mode)
@@ -254,6 +269,41 @@ export default function Organizer() {
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
                         ℹ️ 3.5 Flash: best accuracy. 2.5 Flash: faster & efficient. 3.1 Lite: lightweight option.
+                    </div>
+                </div>
+            )}
+
+            {/* Subfolder Target Size */}
+            {status === 'idle' && (
+                <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <label style={{ display: 'block', marginBottom: '0.75rem', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
+                        📁 Subfolder Organization
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem', background: 'var(--surface-solid)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                        {subfolderOptions.map((option) => (
+                            <button
+                                key={option.id}
+                                onClick={() => handleSubfolderTargetChange(option.id)}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.6rem 0.8rem',
+                                    borderRadius: '6px',
+                                    border: 'none',
+                                    background: subfolderTarget === option.id ? 'var(--accent-gradient)' : 'transparent',
+                                    color: subfolderTarget === option.id ? 'var(--on-accent)' : 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: subfolderTarget === option.id ? '600' : '500',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: subfolderTarget === option.id ? '0 1px 10px var(--accent-glow)' : 'none'
+                                }}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
+                        ℹ️ {subfolderOptions.find(opt => opt.id === subfolderTarget)?.description}
                     </div>
                 </div>
             )}
