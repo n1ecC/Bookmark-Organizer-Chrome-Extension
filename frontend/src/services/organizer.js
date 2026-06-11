@@ -113,6 +113,7 @@ export class OrganizerService {
         }
 
         const results = new Array(batches.length);
+        const failedBatches = [];
         let batchIdx = 0;
 
         const processNext = async () => {
@@ -136,7 +137,8 @@ export class OrganizerService {
 
             } catch (err) {
                 console.error(`Batch ${currentIdx + 1} failed:`, err);
-                this.onProgress({ status: 'error', message: `Batch ${currentIdx + 1} failed: ${err.message}` });
+                failedBatches.push({ index, batchData, label: currentIdx + 1 });
+                this.onProgress({ status: 'warning', message: `⚠️ Batch ${currentIdx + 1} failed (${err.message}) — will retry after the main pass.` });
             }
 
             await processNext();
@@ -149,6 +151,25 @@ export class OrganizerService {
             workers.push(processNext());
         }
         await Promise.all(workers);
+
+        // Second pass: retry failed batches one at a time, with no concurrent
+        // traffic competing — transient network drops usually clear by now.
+        // A batch that STILL fails gets filed under Other/General rather than
+        // dropped, so the output always contains every bookmark.
+        for (const { index, batchData, label } of failedBatches) {
+            if (this.isCancelled) break;
+
+            this.onProgress({ status: 'processing', message: `🔁 Retrying batch ${label}/${batches.length}...` });
+            try {
+                results[index] = await classifyBatch(batchData, this.apiKey, schema, this.model);
+            } catch (err) {
+                console.error(`Batch ${label} failed on second pass:`, err);
+                results[index] = batchData.map(b => ({ title: b.title, url: b.url, category: 'Other', sub_category: 'General' }));
+                this.onProgress({ status: 'warning', message: `⚠️ Batch ${label} could not be classified (${err.message}). Its ${batchData.length} bookmarks were filed under Other → General so none are lost.` });
+            }
+            processed += batchData.length;
+            this.onProgress({ status: 'progress', percent: Math.min(100, Math.round((processed / total) * 100)) });
+        }
 
         if (this.isCancelled) {
             this.onProgress({ status: 'warning', message: 'Process cancelled.' });
