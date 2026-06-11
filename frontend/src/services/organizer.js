@@ -84,7 +84,7 @@ export class OrganizerService {
             }
         } catch (err) {
             console.error('Schema generation failed, falling back to basic categories:', err);
-            this.onProgress({ status: 'warning', message: '⚠️ Schema generation failed. Using default categories.' });
+            this.onProgress({ status: 'warning', message: `⚠️ Schema generation failed after retries: ${err.message}. Using default categories (no subfolders).` });
             schema = {
                 categories: this.categories.map(c => ({ name: c, sub_categories: [] }))
             };
