@@ -17,6 +17,21 @@ export class OrganizerService {
         this.isCancelled = true;
     }
 
+    calculateAdaptiveBatchSize(totalBookmarks) {
+        const isLiteModel = this.model.includes('lite') || this.model.includes('flash-lite');
+        const isProModel = this.model.includes('pro');
+
+        if (totalBookmarks < 50) {
+            return isLiteModel ? 15 : 20;
+        } else if (totalBookmarks < 200) {
+            return isLiteModel ? 20 : isProModel ? 25 : 35;
+        } else if (totalBookmarks < 500) {
+            return isLiteModel ? 25 : isProModel ? 30 : 45;
+        } else {
+            return isLiteModel ? 30 : isProModel ? 35 : 50;
+        }
+    }
+
     async start(fileBookmarks = null) {
         let allLinks = [];
 
@@ -82,12 +97,15 @@ export class OrganizerService {
         const total = allLinks.length;
         let processed = 0;
 
+        const batchSize = this.calculateAdaptiveBatchSize(total);
+        this.onProgress({ status: 'info', message: `📊 Processing with adaptive batch size: ${batchSize} items/batch` });
+
         // Group into batches
         const batches = [];
-        for (let i = 0; i < total; i += this.batchSize) {
+        for (let i = 0; i < total; i += batchSize) {
             batches.push({
                 index: batches.length,
-                batchData: allLinks.slice(i, i + this.batchSize)
+                batchData: allLinks.slice(i, i + batchSize)
             });
         }
 
