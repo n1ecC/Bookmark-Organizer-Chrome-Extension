@@ -206,12 +206,12 @@ export async function classifyBatch(bookmarks, apiKey, schema, model = "google/g
     2. You MUST use category and sub_category strings EXACTLY as written in the schema above (same spelling, casing, spacing). Do not paraphrase or invent variants.
     3. If a bookmark fits a category but no sub-category within it, use "General" as the sub_category.
     4. If a bookmark fits no category at all, classify it as category "Other" with sub_category "General".
-    5. Every bookmark must be classified exactly once. Preserve each bookmark's original title and url verbatim.
+    5. Every bookmark must be classified exactly once. Refer to each bookmark ONLY by its index "i" — do NOT repeat titles or urls in your output.
 
-    Return JSON object: { "classified": [ { "title": "...", "url": "...", "category": "...", "sub_category": "..." } ] }
+    Return JSON object: { "classified": [ { "i": 0, "category": "...", "sub_category": "..." } ] }
 
-    BOOKMARKS:
-    ${JSON.stringify(bookmarks.map(b => ({ title: b.title, url: b.url })))}
+    BOOKMARKS (each with its index "i"):
+    ${JSON.stringify(bookmarks.map((b, i) => ({ i, title: b.title, url: b.url })))}
     `;
 
     return await withRetry(async () => {
@@ -239,7 +239,23 @@ export async function classifyBatch(bookmarks, apiKey, schema, model = "google/g
 
         const data = await response.json();
         const parsed = parseModelResponse(data);
-        return parsed.classified || [];
+
+        // Join the model's index-only answers back to the source bookmarks.
+        // Titles and urls come from OUR data, never from model output — the
+        // model can no longer mangle them, overflow max_tokens echoing long
+        // urls, or corrupt the JSON with odd characters from titles.
+        const byIndex = new Map();
+        for (const entry of parsed.classified || []) {
+            if (Number.isInteger(entry.i) && entry.i >= 0 && entry.i < bookmarks.length && !byIndex.has(entry.i)) {
+                byIndex.set(entry.i, entry);
+            }
+        }
+        return bookmarks.map((b, i) => ({
+            title: b.title,
+            url: b.url,
+            category: byIndex.get(i)?.category || 'Other',
+            sub_category: byIndex.get(i)?.sub_category || 'General'
+        }));
     });
 }
 
