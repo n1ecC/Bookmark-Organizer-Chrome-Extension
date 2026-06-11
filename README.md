@@ -4,6 +4,8 @@
 
 Organize your messy bookmarks automatically using Google Gemini AI. Privacy-focused, local processing, and instant export.
 
+<img src="assets/feature_showcase.png" alt="AI Bookmark Organizer Features - Your Digital Knowledge Hub" width="100%">
+
 ## 🚀 Features
 - **One-Click Logic**: Sorts hundreds of bookmarks into smart categories (Dev, News, Shopping, etc.).
 - **Privacy First**: Your bookmarks are processed in-memory and never stored on our servers.
