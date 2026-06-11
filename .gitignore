@@ -10,6 +10,10 @@ organized_bookmarks_clean.html
 bookmark_progress.jsonl
 failed_batches.jsonl
 
+# Build artifacts
+dist/
+*.zip
+
 # Documentation (Ignored by request)
 CHANGELOG.md
 DEBUGGING_GUIDE.md
@@ -21,6 +25,5 @@ DEPLOYMENT_GUIDE.md
 HOSTING_GUIDE.md
 PRIVACY_FORM.md
 debug_output/
-assets/
 
 
