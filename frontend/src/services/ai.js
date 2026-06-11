@@ -25,6 +25,48 @@ function extractJson(content) {
     return JSON.parse(text);
 }
 
+// Determine if an error is retryable (transient) vs permanent
+function isRetryableError(error, statusCode) {
+    if (!statusCode) {
+        // Network/timeout errors are retryable
+        const message = error?.message || '';
+        return message.includes('timeout') || message.includes('network') || message.includes('fetch');
+    }
+
+    // Retryable HTTP status codes:
+    // 429 = Rate Limited, 500 = Server Error, 502 = Bad Gateway, 503 = Service Unavailable, 504 = Gateway Timeout
+    return [429, 500, 502, 503, 504].includes(statusCode);
+}
+
+// Generic retry wrapper with exponential backoff
+async function withRetry(fn, maxRetries = 3, initialDelayMs = 1000) {
+    let lastError;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error;
+
+            // Extract status code if available
+            const statusCode = error.statusCode || (error.message?.match(/(\d{3})/) ? parseInt(error.message.match(/(\d{3})/)[1]) : null);
+
+            // If not retryable or this was the last attempt, throw
+            if (!isRetryableError(error, statusCode) || attempt === maxRetries) {
+                throw error;
+            }
+
+            // Calculate delay: 1s, 2s, 4s, 8s, etc.
+            const delayMs = initialDelayMs * Math.pow(2, attempt - 1);
+            console.log(`Attempt ${attempt} failed, retrying in ${delayMs}ms:`, error.message);
+
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+    }
+
+    throw lastError;
+}
+
 export async function generateSchema(bookmarks, apiKey, baseCategories, model = "google/gemini-3.5-flash", subfolderTarget = "5-10") {
     const subfolderRules = {
         '0-5': 'aim for roughly 3-5 sub-folders inside each category. Keep it minimal — only create subfolders for truly distinct groups. Err on the side of combining related items into broader folders.',
@@ -73,44 +115,35 @@ export async function generateSchema(bookmarks, apiKey, baseCategories, model = 
     ${JSON.stringify(bookmarks.map(b => ({ title: b.title, url: b.url })))}
     `;
 
-    const maxRetries = 3;
-    let delay = 1000;
+    return await withRetry(async () => {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: OR_HEADERS(apiKey),
+            body: JSON.stringify({
+                model: model,
+                temperature: 0.2,
+                max_tokens: 8000,
+                messages: [
+                    { role: "system", content: "You are an expert information architect and precise JSON generator. Output only valid JSON. Do not use Markdown blocks." },
+                    { role: "user", content: prompt }
+                ],
+                response_format: { type: "json_object" }
+            })
+        });
 
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: OR_HEADERS(apiKey),
-                body: JSON.stringify({
-                    model: model,
-                    temperature: 0.2,
-                    max_tokens: 8000,
-                    messages: [
-                        { role: "system", content: "You are an expert information architect and precise JSON generator. Output only valid JSON. Do not use Markdown blocks." },
-                        { role: "user", content: prompt }
-                    ],
-                    response_format: { type: "json_object" }
-                })
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API Error: ${response.status} - ${errorText}`);
-            }
-
-            const data = await response.json();
-            const content = data.choices?.[0]?.message?.content;
-            if (!content) throw new Error("Empty response from model");
-
-            return extractJson(content);
-
-        } catch (err) {
-            console.error(`Attempt ${i + 1} failed:`, err);
-            if (i === maxRetries - 1) throw err;
-            await new Promise(resolve => setTimeout(resolve, delay));
-            delay *= 2;
+        if (!response.ok) {
+            const errorText = await response.text();
+            const error = new Error(`API Error: ${response.status} - ${errorText}`);
+            error.statusCode = response.status;
+            throw error;
         }
-    }
+
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (!content) throw new Error("Empty response from model");
+
+        return extractJson(content);
+    });
 }
 
 export async function classifyBatch(bookmarks, apiKey, schema, model = "google/gemini-3.5-flash") {
@@ -133,45 +166,35 @@ export async function classifyBatch(bookmarks, apiKey, schema, model = "google/g
     ${JSON.stringify(bookmarks.map(b => ({ title: b.title, url: b.url })))}
     `;
 
-    const maxRetries = 3;
-    let delay = 1000;
+    return await withRetry(async () => {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: OR_HEADERS(apiKey),
+            body: JSON.stringify({
+                model: model,
+                temperature: 0.1,
+                max_tokens: 8000,
+                messages: [
+                    { role: "system", content: "You are a precise classification engine and JSON generator. Output only valid JSON. Do not use Markdown blocks." },
+                    { role: "user", content: prompt }
+                ],
+                response_format: { type: "json_object" }
+            })
+        });
 
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            // OpenRouter
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: OR_HEADERS(apiKey),
-                body: JSON.stringify({
-                    model: model,
-                    temperature: 0.1,
-                    max_tokens: 8000,
-                    messages: [
-                        { role: "system", content: "You are a precise classification engine and JSON generator. Output only valid JSON. Do not use Markdown blocks." },
-                        { role: "user", content: prompt }
-                    ],
-                    response_format: { type: "json_object" }
-                })
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API Error: ${response.status} - ${errorText}`);
-            }
-
-            const data = await response.json();
-            const content = data.choices?.[0]?.message?.content;
-            if (!content) throw new Error("Empty response from model");
-
-            const parsed = extractJson(content);
-            return parsed.classified || [];
-
-        } catch (err) {
-            console.error(`Attempt ${i + 1} failed:`, err);
-            if (i === maxRetries - 1) throw err;
-            await new Promise(resolve => setTimeout(resolve, delay));
-            delay *= 2;
+        if (!response.ok) {
+            const errorText = await response.text();
+            const error = new Error(`API Error: ${response.status} - ${errorText}`);
+            error.statusCode = response.status;
+            throw error;
         }
-    }
+
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (!content) throw new Error("Empty response from model");
+
+        const parsed = extractJson(content);
+        return parsed.classified || [];
+    });
 }
 
