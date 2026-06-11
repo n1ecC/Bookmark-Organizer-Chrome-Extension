@@ -4,8 +4,13 @@
  * @returns {Array} - Array of bookmark objects {title, url, add_date}.
  */
 export const parseBookmarks = (htmlContent) => {
+    // Strip embedded favicon attributes BEFORE parsing: exports carry a
+    // base64 ICON on every <A>, so DOMParser would otherwise build a DOM
+    // holding hundreds of MB of icon data, stalling or OOM-ing the panel.
+    const stripped = htmlContent.replace(/\s(?:ICON|ICON_URI)="[^"]*"/gi, "");
+
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, "text/html");
+    const doc = parser.parseFromString(stripped, "text/html");
     const links = [];
     const seen = new Set();
 
@@ -14,9 +19,6 @@ export const parseBookmarks = (htmlContent) => {
         // Basic validation and dedup
         if (url && !seen.has(url) && !url.startsWith("place:")) {
             seen.add(url);
-            // Deliberately NOT keeping the ICON attribute: exports embed base64
-            // favicons there, and holding thousands of them in memory bloats the
-            // panel for data nothing downstream uses.
             links.push({
                 title: a.textContent.trim() || "Untitled",
                 url: url,
