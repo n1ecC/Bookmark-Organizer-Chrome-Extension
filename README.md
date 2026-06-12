@@ -16,7 +16,7 @@ Turn years of messy, unsorted bookmarks into a clean, browsable folder structure
 - **Model Selection** — Pick the Gemini model that fits your needs: 3.5 Flash (best accuracy), 2.5 Pro, 2.5 Flash, or 3.1 Flash Lite (lightweight).
 - **Two Input Modes**
   - **Browser mode**: organizes your live Chrome bookmarks into a new dated folder (e.g. `AI Organized Bookmarks-2026-06-10`) under *Other Bookmarks*.
-  - **File mode**: drag & drop any exported `bookmarks.html`, get back a cleaned-up, importable HTML file — works with bookmarks from any browser.
+  - **File mode**: drag & drop any exported `bookmarks.html`, get back a cleaned-up, importable HTML file — works with bookmarks from any browser. Embedded favicons are preserved in the output, though for very large bookmark files some or all icons may be skipped to keep memory usage in check (oversized icons and anything beyond a 25 MB total budget). Browsers re-fetch favicons automatically as you visit pages, so skipped icons reappear over time.
 - **Non-Destructive** — Your original bookmarks are never moved or deleted. Organized copies are created alongside them, so you can review before committing.
 - **Fast** — Bookmarks are classified in concurrent batches, so even large collections finish quickly.
 - **Live Progress Log** — A terminal-style output shows the generated schema, batch progress, and timestamps as the run unfolds.
