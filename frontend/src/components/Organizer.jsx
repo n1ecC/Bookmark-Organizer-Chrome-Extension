@@ -36,6 +36,9 @@ export default function Organizer() {
     ])
     const [newCategory, setNewCategory] = useState('')
 
+    // Sort folders/bookmarks alphabetically after classification
+    const [sortAlphabetically, setSortAlphabetically] = useState(true)
+
     // Subfolder Target Size
     const [subfolderTarget, setSubfolderTarget] = useState('5-10')
     const subfolderOptions = useMemo(() => [
@@ -55,10 +58,11 @@ export default function Organizer() {
     // Load Settings from storage
     useEffect(() => {
         if (typeof chrome !== 'undefined' && chrome.storage) {
-            chrome.storage.local.get(['apiKey', 'selectedModel', 'subfolderTarget', 'organizedMeta'], (result) => {
+            chrome.storage.local.get(['apiKey', 'selectedModel', 'subfolderTarget', 'sortAlphabetically', 'organizedMeta'], (result) => {
                 if (result.apiKey) setApiKey(result.apiKey)
                 if (result.selectedModel) setSelectedModel(result.selectedModel)
                 if (result.subfolderTarget) setSubfolderTarget(result.subfolderTarget)
+                if (typeof result.sortAlphabetically === 'boolean') setSortAlphabetically(result.sortAlphabetically)
                 if (result.organizedMeta) setLastOrganized(result.organizedMeta)
             })
         }
@@ -84,6 +88,11 @@ export default function Organizer() {
     const handleSubfolderTargetChange = useCallback((target) => {
         setSubfolderTarget(target)
         updateSetting('subfolderTarget', target)
+    }, [updateSetting])
+
+    const handleSortToggle = useCallback((enabled) => {
+        setSortAlphabetically(enabled)
+        updateSetting('sortAlphabetically', enabled)
     }, [updateSetting])
 
     // File Upload Handlers
@@ -181,7 +190,8 @@ export default function Organizer() {
             setLogs([
                 { message: '🚀 Starting AI Organization...', timestamp: new Date() },
                 { message: `🤖 Using Model: Google Gemini ${selectedModelLabel}`, timestamp: new Date() },
-                { message: `📁 Subfolder Organization: ${subfolderLabel}`, timestamp: new Date() }
+                { message: `📁 Subfolder Organization: ${subfolderLabel}`, timestamp: new Date() },
+                { message: `Alphabetical Sorting: ${sortAlphabetically ? 'On' : 'Off'}`, timestamp: new Date() }
             ])
             setProgress(0)
             setErrorMsg('')
@@ -208,7 +218,8 @@ export default function Organizer() {
                     }
                 },
                 selectedModel,
-                subfolderTarget
+                subfolderTarget,
+                sortAlphabetically
             )
 
             // Pass parsed bookmarks if file mode, otherwise null (browser mode)
@@ -234,7 +245,7 @@ export default function Organizer() {
             setErrorMsg("Failed to start process.")
             setStatus('error')
         }
-    }, [apiKey, models, selectedModel, categories, addLog, parsedBookmarks, subfolderTarget, subfolderOptions])
+    }, [apiKey, models, selectedModel, categories, addLog, parsedBookmarks, subfolderTarget, subfolderOptions, sortAlphabetically])
 
     return (
         <div className="glass-panel" style={{ width: '100%', padding: '2rem', textAlign: 'left', boxSizing: 'border-box' }}>
@@ -347,6 +358,48 @@ export default function Organizer() {
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
                         ℹ️ {subfolderOptions.find(opt => opt.id === subfolderTarget)?.description}
                     </div>
+                </div>
+            )}
+
+            {/* Alphabetical Sorting Toggle */}
+            {status === 'idle' && (
+                <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                    <div>
+                        <label style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
+                            Sort Alphabetically
+                        </label>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                            Sort folders and the bookmarks inside them A–Z
+                        </div>
+                    </div>
+                    <button
+                        role="switch"
+                        aria-checked={sortAlphabetically}
+                        onClick={() => handleSortToggle(!sortAlphabetically)}
+                        style={{
+                            width: '44px',
+                            height: '24px',
+                            borderRadius: '12px',
+                            border: '1px solid var(--border)',
+                            background: sortAlphabetically ? 'var(--accent)' : 'var(--surface-solid)',
+                            position: 'relative',
+                            cursor: 'pointer',
+                            padding: 0,
+                            flexShrink: 0,
+                            transition: 'background 0.2s ease'
+                        }}
+                    >
+                        <span style={{
+                            position: 'absolute',
+                            top: '2px',
+                            left: sortAlphabetically ? '22px' : '2px',
+                            width: '18px',
+                            height: '18px',
+                            borderRadius: '50%',
+                            background: sortAlphabetically ? 'var(--on-accent)' : 'var(--text-muted)',
+                            transition: 'left 0.2s ease'
+                        }} />
+                    </button>
                 </div>
             )}
 
