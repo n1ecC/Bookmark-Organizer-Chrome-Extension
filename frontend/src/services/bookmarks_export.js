@@ -1,9 +1,21 @@
+/* global chrome */
+
 // HTML escape function to prevent XSS
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Embed a favicon only when it is a pure base64 image data URL: the strict
+// charset (no quotes, angle brackets or ampersands) guarantees the value
+// cannot break out of the quoted attribute.
+function iconAttribute(icon) {
+    if (typeof icon === 'string' && /^data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]*$/i.test(icon)) {
+        return ` ICON="${icon}"`;
+    }
+    return '';
 }
 
 // URL sanitization - only allow http/https protocols
@@ -64,7 +76,7 @@ export function generateNetscapeHTML(bookmarks) {
                     const safeTitle = escapeHtml(item.title);
                     const safeUrl = sanitizeUrl(item.url);
                     if (safeUrl) {
-                        html += `            <DT><A HREF="${safeUrl}" ADD_DATE="${now}">${safeTitle}</A>\n`;
+                        html += `            <DT><A HREF="${safeUrl}" ADD_DATE="${now}"${iconAttribute(item.icon)}>${safeTitle}</A>\n`;
                     }
                 });
                 html += `        </DL><p>\n`;
@@ -77,7 +89,7 @@ export function generateNetscapeHTML(bookmarks) {
                 const safeTitle = escapeHtml(item.title);
                 const safeUrl = sanitizeUrl(item.url);
                 if (safeUrl) {
-                    html += `        <DT><A HREF="${safeUrl}" ADD_DATE="${now}">${safeTitle}</A>\n`;
+                    html += `        <DT><A HREF="${safeUrl}" ADD_DATE="${now}"${iconAttribute(item.icon)}>${safeTitle}</A>\n`;
                 }
             });
         }
