@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { Terminal, Play, AlertCircle, Plus, X, Bookmark, Upload, FileText } from 'lucide-react'
+import { Terminal, Play, AlertCircle, Plus, X, Bookmark, Upload, FileText, Download } from 'lucide-react'
 import { OrganizerService } from '../services/organizer'
 import { parseBookmarks } from '../utils/parser'
+import { downloadBookmarks } from '../services/bookmarks_export'
 
 export default function Organizer() {
     const [status, setStatus] = useState('idle') // idle, processing, complete, error
@@ -46,13 +47,19 @@ export default function Organizer() {
     const logContainerRef = useRef(null)
     const organizerRef = useRef(null)
 
+    // Last organized run, available for download even after the panel was
+    // closed: metadata lives in state, the full results in chrome.storage.
+    const [lastOrganized, setLastOrganized] = useState(null) // { count, savedAt }
+    const organizedResultsRef = useRef(null)
+
     // Load Settings from storage
     useEffect(() => {
         if (typeof chrome !== 'undefined' && chrome.storage) {
-            chrome.storage.local.get(['apiKey', 'selectedModel', 'subfolderTarget'], (result) => {
+            chrome.storage.local.get(['apiKey', 'selectedModel', 'subfolderTarget', 'organizedMeta'], (result) => {
                 if (result.apiKey) setApiKey(result.apiKey)
                 if (result.selectedModel) setSelectedModel(result.selectedModel)
                 if (result.subfolderTarget) setSubfolderTarget(result.subfolderTarget)
+                if (result.organizedMeta) setLastOrganized(result.organizedMeta)
             })
         }
     }, [])
@@ -84,9 +91,8 @@ export default function Organizer() {
     const [parsedBookmarks, setParsedBookmarks] = useState(null)
     const fileInputRef = useRef(null)
 
-    const handleFileSelect = useCallback(async (e) => {
-        const file = e.target.files[0];
-        if (file) processFile(file);
+    const addLog = useCallback((message) => {
+        setLogs(prev => [...prev, { message, timestamp: new Date() }])
     }, [])
 
     const processFile = useCallback((file) => {
@@ -110,7 +116,12 @@ export default function Organizer() {
             }
         };
         reader.readAsText(file);
-    }, [])
+    }, [addLog])
+
+    const handleFileSelect = useCallback(async (e) => {
+        const file = e.target.files[0];
+        if (file) processFile(file);
+    }, [processFile])
 
     const handleDrop = useCallback((e) => {
         e.preventDefault();
@@ -129,8 +140,22 @@ export default function Organizer() {
         }
     }, [logs])
 
-    const addLog = useCallback((message) => {
-        setLogs(prev => [...prev, { message, timestamp: new Date() }])
+    const downloadOrganized = useCallback(() => {
+        if (organizedResultsRef.current) {
+            downloadBookmarks(organizedResultsRef.current)
+            return
+        }
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+            chrome.storage.local.get(['organizedData'], (result) => {
+                if (result.organizedData && result.organizedData.length > 0) {
+                    organizedResultsRef.current = result.organizedData
+                    downloadBookmarks(result.organizedData)
+                } else {
+                    setErrorMsg('No saved organized bookmarks found.')
+                    setLastOrganized(null)
+                }
+            })
+        }
     }, [])
 
     const resetApp = useCallback(() => {
@@ -187,7 +212,22 @@ export default function Organizer() {
             )
 
             // Pass parsed bookmarks if file mode, otherwise null (browser mode)
-            await organizerRef.current.start(parsedBookmarks)
+            const results = await organizerRef.current.start(parsedBookmarks)
+
+            if (results && results.length > 0) {
+                organizedResultsRef.current = results
+                const meta = { count: results.length, savedAt: Date.now() }
+                setLastOrganized(meta)
+                if (typeof chrome !== 'undefined' && chrome.storage) {
+                    chrome.storage.local.set({ organizedData: results, organizedMeta: meta }, () => {
+                        if (chrome.runtime.lastError) {
+                            addLog(`⚠️ Could not save results for later download: ${chrome.runtime.lastError.message}`)
+                        } else {
+                            addLog('💾 Results saved — downloadable anytime, even after closing this panel.')
+                        }
+                    })
+                }
+            }
 
         } catch (err) {
             console.error(err)
@@ -452,6 +492,45 @@ export default function Organizer() {
                 </div>
             )}
 
+            {/* Saved results from a previous run (persists across panel sessions) */}
+            {status === 'idle' && lastOrganized && (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '1rem',
+                    padding: '0.75rem 1rem',
+                    marginBottom: '2rem',
+                    background: 'var(--surface-alt)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px'
+                }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        💾 Last run: {lastOrganized.count.toLocaleString()} bookmarks organized
+                        <span style={{ color: 'var(--text-muted)' }}> · {new Date(lastOrganized.savedAt).toLocaleString()}</span>
+                    </div>
+                    <button
+                        onClick={downloadOrganized}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.5rem 0.9rem',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background: 'var(--accent)',
+                            color: 'var(--on-accent)',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        <Download size={15} />
+                        Download
+                    </button>
+                </div>
+            )}
+
             {/* Controls */}
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
                 {status === 'complete' ? (
@@ -459,6 +538,18 @@ export default function Organizer() {
                         <div style={{ marginBottom: '1rem', color: 'var(--success)', fontSize: '1.2rem', fontWeight: 'bold' }}>
                             {uploadedFile ? "File Processed! Check your downloads." : 'All Done! Check your "AI Organized Bookmarks" folder.'}
                         </div>
+                        {lastOrganized && (
+                            <div style={{ marginBottom: '1rem' }}>
+                                <button
+                                    className="btn-primary"
+                                    onClick={downloadOrganized}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+                                >
+                                    <Download size={18} />
+                                    Download Organized Bookmarks
+                                </button>
+                            </div>
+                        )}
                         <div
                             onClick={resetApp}
                             style={{
