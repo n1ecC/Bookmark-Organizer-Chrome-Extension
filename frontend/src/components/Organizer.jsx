@@ -14,7 +14,7 @@ export default function Organizer() {
     const [apiKey, setApiKey] = useState('') // OpenRouter
 
     // Model Selection
-    const [selectedModel, setSelectedModel] = useState('google/gemini-3.5-flash')
+    const [selectedModel, setSelectedModel] = useState('google/gemini-3.1-flash-lite')
     const models = useMemo(() => [
         { id: 'google/gemini-2.5-flash', label: '2.5 Flash' },
         { id: 'google/gemini-2.5-pro', label: '2.5 Pro' },
