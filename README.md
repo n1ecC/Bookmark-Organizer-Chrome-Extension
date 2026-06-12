@@ -13,6 +13,7 @@ Turn years of messy, unsorted bookmarks into a clean, browsable folder structure
   - **Balanced (5–10)** — the recommended default
   - **Detailed (10+)** — fine-grained, topic-specific folders
 - **Custom Categories** — Start from 10 sensible defaults (Technology & Coding, News & Research, Finance & Business, …) and add or remove top-level categories to fit your collection.
+- **Alphabetical Sorting** — A toggle (on by default) sorts the organized output A–Z: category folders, subfolders, and the bookmarks inside each folder. Switch it off to keep the AI's classification order.
 - **Model Selection** — Pick the Gemini model that fits your needs: 3.5 Flash (best accuracy), 2.5 Pro, 2.5 Flash, or 3.1 Flash Lite (lightweight).
 - **Two Input Modes**
   - **Browser mode**: organizes your live Chrome bookmarks into a new dated folder (e.g. `AI Organized Bookmarks-2026-06-10`) under *Other Bookmarks*.
@@ -33,10 +34,10 @@ Turn years of messy, unsorted bookmarks into a clean, browsable folder structure
 
 You can install this extension manually (no Store required) by downloading the latest release.
 
-**➡️ [Download the latest release](https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension/releases/latest)** — or grab the zip directly: **[bookmark-organizer-v1.0.2.zip](https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension/releases/download/v1.0.2/bookmark-organizer-v1.0.2.zip)**
+**➡️ [Download the latest release](https://github.com/n1ecC/Bookmark-Organizer-Chrome-Extension/releases/latest)** — or grab the zip directly: **[bookmark-organizer-v1.1.0.zip](https://github.com/n1ecC/Bookmark-Organizer-Chrome-Extension/releases/download/v1.1.0/bookmark-organizer-v1.1.0.zip)**
 
 ### Method 1: Download & Install (Easiest)
-1.  **Download**: Grab **[bookmark-organizer-v1.0.2.zip](https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension/releases/download/v1.0.2/bookmark-organizer-v1.0.2.zip)** from the [Releases page](https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension/releases/latest).
+1.  **Download**: Grab **[bookmark-organizer-v1.1.0.zip](https://github.com/n1ecC/Bookmark-Organizer-Chrome-Extension/releases/download/v1.1.0/bookmark-organizer-v1.1.0.zip)** from the [Releases page](https://github.com/n1ecC/Bookmark-Organizer-Chrome-Extension/releases/latest).
 2.  **Unzip**: Extract the zip file to a folder on your computer.
 3.  **Open Chrome Extensions**:
     - Type `chrome://extensions` in your address bar.
@@ -51,7 +52,7 @@ You can install this extension manually (no Store required) by downloading the l
 ### Method 2: Build from Source
 If you are a developer and want to modify the code:
 ```bash
-git clone https://github.com/consciouspenguin/Bookmark-Organizer-Chrome-Extension.git
+git clone https://github.com/n1ecC/Bookmark-Organizer-Chrome-Extension.git
 cd Bookmark-Organizer-Chrome-Extension/frontend
 npm install
 npm run build
