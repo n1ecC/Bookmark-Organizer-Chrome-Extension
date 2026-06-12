@@ -3,7 +3,7 @@ import { generateSchema, classifyBatch, SCHEMA_SAMPLE_LIMIT } from './ai';
 import { downloadBookmarks } from './bookmarks_export';
 
 export class OrganizerService {
-    constructor(apiKey, categories, onProgress, model = "google/gemini-3.5-flash", subfolderTarget = "5-10", sortAlphabetically = true) {
+    constructor(apiKey, categories, onProgress, model = "google/gemini-3.1-flash-lite", subfolderTarget = "5-10", sortAlphabetically = true) {
         this.apiKey = apiKey;
         this.categories = categories;
         this.onProgress = onProgress || (() => { });
