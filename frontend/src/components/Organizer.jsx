@@ -43,16 +43,20 @@ export default function Organizer() {
         { id: '10+', label: 'Detailed (10+)', description: 'More specific grouping' }
     ], [])
 
+    // Alphabetical sort toggle
+    const [sortAlphabetically, setSortAlphabetically] = useState(false)
+
     const logContainerRef = useRef(null)
     const organizerRef = useRef(null)
 
     // Load Settings from storage
     useEffect(() => {
         if (typeof chrome !== 'undefined' && chrome.storage) {
-            chrome.storage.local.get(['apiKey', 'selectedModel', 'subfolderTarget'], (result) => {
+            chrome.storage.local.get(['apiKey', 'selectedModel', 'subfolderTarget', 'sortAlphabetically'], (result) => {
                 if (result.apiKey) setApiKey(result.apiKey)
                 if (result.selectedModel) setSelectedModel(result.selectedModel)
                 if (result.subfolderTarget) setSubfolderTarget(result.subfolderTarget)
+                if (typeof result.sortAlphabetically === 'boolean') setSortAlphabetically(result.sortAlphabetically)
             })
         }
     }, [])
@@ -77,6 +81,13 @@ export default function Organizer() {
     const handleSubfolderTargetChange = useCallback((target) => {
         setSubfolderTarget(target)
         updateSetting('subfolderTarget', target)
+    }, [updateSetting])
+
+    const handleSortAlphabeticallyChange = useCallback(() => {
+        setSortAlphabetically(prev => {
+            updateSetting('sortAlphabetically', !prev)
+            return !prev
+        })
     }, [updateSetting])
 
     // File Upload Handlers
@@ -183,7 +194,8 @@ export default function Organizer() {
                     }
                 },
                 selectedModel,
-                subfolderTarget
+                subfolderTarget,
+                sortAlphabetically
             )
 
             // Pass parsed bookmarks if file mode, otherwise null (browser mode)
@@ -194,7 +206,7 @@ export default function Organizer() {
             setErrorMsg("Failed to start process.")
             setStatus('error')
         }
-    }, [apiKey, models, selectedModel, categories, addLog, parsedBookmarks, subfolderTarget, subfolderOptions])
+    }, [apiKey, models, selectedModel, categories, addLog, parsedBookmarks, subfolderTarget, subfolderOptions, sortAlphabetically])
 
     return (
         <div className="glass-panel" style={{ width: '100%', padding: '2rem', textAlign: 'left', boxSizing: 'border-box' }}>
@@ -306,6 +318,40 @@ export default function Organizer() {
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
                         ℹ️ {subfolderOptions.find(opt => opt.id === subfolderTarget)?.description}
+                    </div>
+                </div>
+            )}
+
+            {/* Alphabetical Sort */}
+            {status === 'idle' && (
+                <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <label style={{ color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
+                            🔤 Sort Bookmarks A–Z
+                        </label>
+                        <button
+                            onClick={handleSortAlphabeticallyChange}
+                            aria-pressed={sortAlphabetically}
+                            style={{
+                                padding: '0.5rem 1.4rem',
+                                borderRadius: '6px',
+                                border: '1px solid var(--border)',
+                                background: sortAlphabetically ? 'var(--accent-gradient)' : 'transparent',
+                                color: sortAlphabetically ? 'var(--on-accent)' : 'var(--text-secondary)',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: sortAlphabetically ? '600' : '500',
+                                transition: 'all 0.2s ease',
+                                boxShadow: sortAlphabetically ? '0 1px 10px var(--accent-glow)' : 'none'
+                            }}
+                        >
+                            {sortAlphabetically ? 'On' : 'Off'}
+                        </button>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
+                        ℹ️ {sortAlphabetically
+                            ? 'Bookmarks inside each folder will be sorted alphabetically by title.'
+                            : 'Bookmarks keep the order the AI returns them in.'}
                     </div>
                 </div>
             )}

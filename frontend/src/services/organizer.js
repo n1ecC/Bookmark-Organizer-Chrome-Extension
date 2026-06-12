@@ -3,12 +3,13 @@ import { generateSchema, classifyBatch, SCHEMA_SAMPLE_LIMIT } from './ai';
 import { downloadBookmarks } from './bookmarks_export';
 
 export class OrganizerService {
-    constructor(apiKey, categories, onProgress, model = "google/gemini-3.5-flash", subfolderTarget = "5-10") {
+    constructor(apiKey, categories, onProgress, model = "google/gemini-3.5-flash", subfolderTarget = "5-10", sortAlphabetically = false) {
         this.apiKey = apiKey;
         this.categories = categories;
         this.onProgress = onProgress || (() => { });
         this.model = model;
         this.subfolderTarget = subfolderTarget;
+        this.sortAlphabetically = sortAlphabetically;
         this.batchSize = 35;
         this.isCancelled = false;
     }
@@ -177,6 +178,14 @@ export class OrganizerService {
         }
 
         const finalResults = results.flat().filter(Boolean);
+
+        // Sorting the flat list is enough to make every folder alphabetical:
+        // both the exporter and the browser writer group by category while
+        // preserving the relative order of items within each group.
+        if (this.sortAlphabetically) {
+            this.onProgress({ status: 'info', message: '🔤 Sorting bookmarks alphabetically...' });
+            finalResults.sort((a, b) => (a.title || '').localeCompare(b.title || '', undefined, { sensitivity: 'base', numeric: true }));
+        }
 
         if (fileBookmarks) {
             this.onProgress({ status: 'info', message: '💾 Generating organized file...' });
