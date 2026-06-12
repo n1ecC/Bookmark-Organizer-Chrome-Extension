@@ -118,7 +118,7 @@ export default function Organizer() {
                 setUploadedFile(file);
                 setParsedBookmarks(links);
                 setErrorMsg('');
-                addLog(`📂 Loaded ${file.name} (${links.length} bookmarks found)`);
+                addLog(`Loaded ${file.name} (${links.length} bookmarks found)`);
             } catch (err) {
                 console.error(err);
                 setErrorMsg("Failed to parse bookmarks file.");
@@ -188,9 +188,9 @@ export default function Organizer() {
             const selectedModelLabel = models.find(m => m.id === selectedModel)?.label || selectedModel
             const subfolderLabel = subfolderOptions.find(opt => opt.id === subfolderTarget)?.label || subfolderTarget
             setLogs([
-                { message: '🚀 Starting AI Organization...', timestamp: new Date() },
-                { message: `🤖 Using Model: Google Gemini ${selectedModelLabel}`, timestamp: new Date() },
-                { message: `📁 Subfolder Organization: ${subfolderLabel}`, timestamp: new Date() },
+                { message: 'Starting AI Organization...', timestamp: new Date() },
+                { message: `Using Model: Google Gemini ${selectedModelLabel}`, timestamp: new Date() },
+                { message: `Subfolder Organization: ${subfolderLabel}`, timestamp: new Date() },
                 { message: `Alphabetical Sorting: ${sortAlphabetically ? 'On' : 'Off'}`, timestamp: new Date() }
             ])
             setProgress(0)
@@ -201,18 +201,18 @@ export default function Organizer() {
                 categories,
                 (data) => {
                     if (data.status === 'info') {
-                        addLog(`ℹ️ ${data.message}`)
+                        addLog(data.message)
                     } else if (data.status === 'progress') {
                         setProgress(data.percent)
                     } else if (data.status === 'warning') {
-                        addLog(`⚠️ ${data.message}`)
+                        addLog(data.message)
                     } else if (data.status === 'error') {
                         setErrorMsg(data.message)
                         setStatus('error')
                     } else if (data.status === 'success') {
-                        addLog(`🎉 ${data.message}`)
+                        addLog(data.message)
                     } else if (data.status === 'done') {
-                        addLog(`✅ ${data.message}`)
+                        addLog(data.message)
                         setStatus('complete')
                         setProgress(100)
                     }
@@ -232,9 +232,9 @@ export default function Organizer() {
                 if (typeof chrome !== 'undefined' && chrome.storage) {
                     chrome.storage.local.set({ organizedData: results, organizedMeta: meta }, () => {
                         if (chrome.runtime.lastError) {
-                            addLog(`⚠️ Could not save results for later download: ${chrome.runtime.lastError.message}`)
+                            addLog(`Could not save results for later download: ${chrome.runtime.lastError.message}`)
                         } else {
-                            addLog('💾 Results saved — downloadable anytime, even after closing this panel.')
+                            addLog('Results saved — downloadable anytime, even after closing this panel.')
                         }
                     })
                 }
@@ -274,19 +274,15 @@ export default function Organizer() {
                 />
 
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'var(--surface-alt)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                        <span style={{ color: 'var(--success)' }}>🔒</span>
+                    <div style={{ marginBottom: '0.25rem' }}>
                         <span>Your API key is stored locally in your browser.</span>
                     </div>
                 </div>
 
                 <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                    <p style={{ margin: 0, display: 'flex', gap: '0.5rem' }}>
-                        <span>⚡</span>
-                        <span>
-                            Powered by <strong>Google Gemini</strong> via OpenRouter.
-                            Choose your preferred model for optimal performance.
-                        </span>
+                    <p style={{ margin: 0 }}>
+                        Powered by <strong>Google Gemini</strong> via OpenRouter.
+                        Choose your preferred model for optimal performance.
                     </p>
                 </div>
             </div>
@@ -295,7 +291,7 @@ export default function Organizer() {
             {status === 'idle' && (
                 <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <label style={{ display: 'block', marginBottom: '0.75rem', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
-                        🎯 Select AI Model
+                        Select AI Model
                     </label>
                     <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem', background: 'var(--surface-solid)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         {models.map((model) => (
@@ -321,7 +317,7 @@ export default function Organizer() {
                         ))}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-                        ℹ️ 3.5 Flash: best accuracy. 2.5 Flash: faster & efficient. 3.1 Lite: lightweight option.
+                        3.5 Flash: best accuracy. 2.5 Flash: faster & efficient. 3.1 Lite: lightweight option.
                     </div>
                 </div>
             )}
@@ -330,7 +326,7 @@ export default function Organizer() {
             {status === 'idle' && (
                 <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <label style={{ display: 'block', marginBottom: '0.75rem', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
-                        📁 Subfolder Organization
+                        Subfolder Organization
                     </label>
                     <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem', background: 'var(--surface-solid)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         {subfolderOptions.map((option) => (
@@ -356,7 +352,7 @@ export default function Organizer() {
                         ))}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-                        ℹ️ {subfolderOptions.find(opt => opt.id === subfolderTarget)?.description}
+                        {subfolderOptions.find(opt => opt.id === subfolderTarget)?.description}
                     </div>
                 </div>
             )}
@@ -559,7 +555,7 @@ export default function Organizer() {
                     borderRadius: '8px'
                 }}>
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        💾 Last run: {lastOrganized.count.toLocaleString()} bookmarks organized
+                        Last run: {lastOrganized.count.toLocaleString()} bookmarks organized
                         <span style={{ color: 'var(--text-muted)' }}> · {new Date(lastOrganized.savedAt).toLocaleString()}</span>
                     </div>
                     <button
@@ -616,7 +612,7 @@ export default function Organizer() {
                                 display: 'inline-block'
                             }}
                         >
-                            ✨ Organize Again
+                            Organize Again
                         </div>
                     </div>
                 ) : (
