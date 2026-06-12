@@ -61,7 +61,7 @@ export class OrganizerService {
 
         if (allLinks.length === 0) {
             this.onProgress({ status: 'done', message: 'No bookmarks to organize.' });
-            return;
+            return null;
         }
 
         // --- Phase 1: Generate Schema ---
@@ -173,7 +173,7 @@ export class OrganizerService {
 
         if (this.isCancelled) {
             this.onProgress({ status: 'warning', message: 'Process cancelled.' });
-            return;
+            return null;
         }
 
         const finalResults = results.flat().filter(Boolean);
@@ -226,9 +226,11 @@ export class OrganizerService {
 
         if (this.isCancelled) {
             this.onProgress({ status: 'warning', message: 'Process cancelled.' });
-        } else {
-            this.onProgress({ status: 'done', message: '✅ Organization complete!' });
+            return null;
         }
+
+        this.onProgress({ status: 'done', message: '✅ Organization complete!' });
+        return finalResults;
     }
 }
 
