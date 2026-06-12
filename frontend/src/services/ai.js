@@ -258,7 +258,9 @@ export async function classifyBatch(bookmarks, apiKey, schema, model = "google/g
         // Join the model's index-only answers back to the source bookmarks.
         // Titles and urls come from OUR data, never from model output — the
         // model can no longer mangle them, overflow max_tokens echoing long
-        // urls, or corrupt the JSON with odd characters from titles.
+        // urls, or corrupt the JSON with odd characters from titles. The
+        // spread also carries fields the AI never sees (icon, add_date)
+        // through to the export.
         const byIndex = new Map();
         for (const entry of parsed.classified || []) {
             if (Number.isInteger(entry.i) && entry.i >= 0 && entry.i < bookmarks.length && !byIndex.has(entry.i)) {
@@ -266,8 +268,7 @@ export async function classifyBatch(bookmarks, apiKey, schema, model = "google/g
             }
         }
         return bookmarks.map((b, i) => ({
-            title: b.title,
-            url: b.url,
+            ...b,
             category: byIndex.get(i)?.category || 'Other',
             sub_category: byIndex.get(i)?.sub_category || 'General'
         }));
