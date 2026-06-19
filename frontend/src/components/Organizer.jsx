@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Terminal, Play, AlertCircle, Plus, X, Bookmark, Upload, FileText } from 'lucide-react'
 import { OrganizerService } from '../services/organizer'
+import { detectProvider } from '../services/ai'
 import { parseBookmarks } from '../utils/parser'
 
 export default function Organizer() {
@@ -9,11 +10,12 @@ export default function Organizer() {
     const [progress, setProgress] = useState(0)
     const [errorMsg, setErrorMsg] = useState('')
 
-    // API Keys
-    const [apiKey, setApiKey] = useState('') // OpenRouter
+    // API Key — single field accepts a Google AI Studio ("AIza...") or OpenRouter ("sk-or-...") key
+    const [apiKey, setApiKey] = useState('')
+    const provider = useMemo(() => detectProvider(apiKey), [apiKey])
 
     // Model Selection
-    const [selectedModel, setSelectedModel] = useState('google/gemini-3.5-flash')
+    const [selectedModel, setSelectedModel] = useState('google/gemini-3.1-flash-lite')
     const models = useMemo(() => [
         { id: 'google/gemini-2.5-flash', label: '2.5 Flash' },
         { id: 'google/gemini-2.5-pro', label: '2.5 Pro' },
@@ -145,7 +147,7 @@ export default function Organizer() {
 
     const startProcess = useCallback(async () => {
         if (!apiKey) {
-            setErrorMsg(`Please enter your OpenRouter API Key.`)
+            setErrorMsg(`Please enter your Google AI Studio or OpenRouter API Key.`)
             return
         }
 
@@ -202,11 +204,14 @@ export default function Organizer() {
             {/* API Key Input */}
             <div style={{ marginBottom: '2rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
-                    OpenRouter API Key <span style={{ color: 'var(--error)' }}>*</span>
+                    API Key <span style={{ color: 'var(--error)' }}>*</span>
+                    <span style={{ marginLeft: '0.5rem', color: 'var(--text-muted)', fontWeight: '400' }}>
+                        Google AI Studio or OpenRouter
+                    </span>
                 </label>
                 <input
                     type="password"
-                    placeholder="sk-or-..."
+                    placeholder="AIza... (Google AI Studio) or sk-or-... (OpenRouter)"
                     value={apiKey}
                     onChange={(e) => handleApiKeyChange(e.target.value)}
                     style={{
@@ -233,8 +238,10 @@ export default function Organizer() {
                     <p style={{ margin: 0, display: 'flex', gap: '0.5rem' }}>
                         <span>⚡</span>
                         <span>
-                            Powered by <strong>Google Gemini</strong> via OpenRouter.
-                            Choose your preferred model for optimal performance.
+                            Powered by <strong>Google Gemini</strong>. Paste a key from{' '}
+                            <strong>Google AI Studio</strong> (free, starts with <code>AIza</code>) or{' '}
+                            <strong>OpenRouter</strong> (<code>sk-or-</code>) — the provider is detected
+                            automatically{apiKey ? `: ${provider === 'gemini' ? 'Google AI Studio' : 'OpenRouter'}` : ''}.
                         </span>
                     </p>
                 </div>
