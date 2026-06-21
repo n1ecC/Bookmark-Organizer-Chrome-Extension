@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { Terminal, Play, AlertCircle, Plus, X, Bookmark, Upload, FileText } from 'lucide-react'
+import { Terminal, Play, AlertCircle, Plus, X, Bookmark, Upload, FileText, Lock, Zap } from 'lucide-react'
 import { OrganizerService } from '../services/organizer'
 import { detectProvider } from '../services/ai'
 import { parseBookmarks } from '../utils/parser'
@@ -105,7 +105,7 @@ export default function Organizer() {
                 setUploadedFile(file);
                 setParsedBookmarks(links);
                 setErrorMsg('');
-                addLog(`📂 Loaded ${file.name} (${links.length} bookmarks found)`);
+                addLog(`Loaded ${file.name} (${links.length} bookmarks found)`);
             } catch (err) {
                 console.error(err);
                 setErrorMsg("Failed to parse bookmarks file.");
@@ -156,9 +156,9 @@ export default function Organizer() {
             const selectedModelLabel = models.find(m => m.id === selectedModel)?.label || selectedModel
             const subfolderLabel = subfolderOptions.find(opt => opt.id === subfolderTarget)?.label || subfolderTarget
             setLogs([
-                { message: '🚀 Starting AI Organization...', timestamp: new Date() },
-                { message: `🤖 Using Model: Google Gemini ${selectedModelLabel}`, timestamp: new Date() },
-                { message: `📁 Subfolder Organization: ${subfolderLabel}`, timestamp: new Date() }
+                { message: 'Starting AI Organization...', timestamp: new Date() },
+                { message: `Using Model: Google Gemini ${selectedModelLabel}`, timestamp: new Date() },
+                { message: `Subfolder Organization: ${subfolderLabel}`, timestamp: new Date() }
             ])
             setProgress(0)
             setErrorMsg('')
@@ -168,18 +168,18 @@ export default function Organizer() {
                 categories,
                 (data) => {
                     if (data.status === 'info') {
-                        addLog(`ℹ️ ${data.message}`)
+                        addLog(`${data.message}`)
                     } else if (data.status === 'progress') {
                         setProgress(data.percent)
                     } else if (data.status === 'warning') {
-                        addLog(`⚠️ ${data.message}`)
+                        addLog(`${data.message}`)
                     } else if (data.status === 'error') {
                         setErrorMsg(data.message)
                         setStatus('error')
                     } else if (data.status === 'success') {
-                        addLog(`🎉 ${data.message}`)
+                        addLog(`${data.message}`)
                     } else if (data.status === 'done') {
-                        addLog(`✅ ${data.message}`)
+                        addLog(`${data.message}`)
                         setStatus('complete')
                         setProgress(100)
                     }
@@ -223,20 +223,21 @@ export default function Organizer() {
                         color: 'var(--text-primary)',
                         fontSize: '1rem',
                         outline: 'none',
-                        marginBottom: '0.5rem'
+                        marginBottom: '0.5rem',
+                        boxSizing: 'border-box'
                     }}
                 />
 
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'var(--surface-alt)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                        <span style={{ color: 'var(--success)' }}>🔒</span>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <Lock size={14} style={{ color: 'var(--success)', flexShrink: 0 }} />
                         <span>Your API key is stored locally in your browser.</span>
                     </div>
                 </div>
 
                 <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                    <p style={{ margin: 0, display: 'flex', gap: '0.5rem' }}>
-                        <span>⚡</span>
+                    <p style={{ margin: 0, display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                        <Zap size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
                         <span>
                             Powered by <strong>Google Gemini</strong>. Paste a key from{' '}
                             <strong>Google AI Studio</strong> (free, starts with <code>AIza</code>) or{' '}
@@ -251,7 +252,7 @@ export default function Organizer() {
             {status === 'idle' && (
                 <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <label style={{ display: 'block', marginBottom: '0.75rem', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
-                        🎯 Select AI Model
+                        Select AI Model
                     </label>
                     <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem', background: 'var(--surface-solid)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         {models.map((model) => (
@@ -277,7 +278,7 @@ export default function Organizer() {
                         ))}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-                        ℹ️ 3.5 Flash: best accuracy. 2.5 Flash: faster & efficient. 3.1 Lite: lightweight option.
+                        3.5 Flash: best accuracy. 2.5 Flash: faster & efficient. 3.1 Lite: lightweight option.
                     </div>
                 </div>
             )}
@@ -286,7 +287,7 @@ export default function Organizer() {
             {status === 'idle' && (
                 <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <label style={{ display: 'block', marginBottom: '0.75rem', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
-                        📁 Subfolder Organization
+                        Subfolder Organization
                     </label>
                     <div style={{ display: 'flex', gap: '0.5rem', padding: '0.4rem', background: 'var(--surface-solid)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         {subfolderOptions.map((option) => (
@@ -312,8 +313,22 @@ export default function Organizer() {
                         ))}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-                        ℹ️ {subfolderOptions.find(opt => opt.id === subfolderTarget)?.description}
+                        {subfolderOptions.find(opt => opt.id === subfolderTarget)?.description}
                     </div>
+                </div>
+            )}
+
+            {/* Alphabetic Sorting */}
+            {status === 'idle' && (
+                <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--surface-alt)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <label style={{ display: 'block', marginBottom: '0.75rem', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: '500' }}>
+                        Alphabetic Sorting
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => {}} style={{ flex: 1, padding: '0.6rem', borderRadius: '6px', border: 'none', background: 'var(--accent-gradient)', color: 'var(--on-accent)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600', transition: 'all 0.2s' }}>Enabled</button>
+                        <button onClick={() => {}} style={{ flex: 1, padding: '0.6rem', borderRadius: '6px', border: 'none', background: 'var(--surface-solid)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s' }}>Disabled</button>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Bookmarks will be sorted alphabetically</div>
                 </div>
             )}
 
@@ -479,7 +494,7 @@ export default function Organizer() {
                                 display: 'inline-block'
                             }}
                         >
-                            ✨ Organize Again
+                            Organize Again
                         </div>
                     </div>
                 ) : (
