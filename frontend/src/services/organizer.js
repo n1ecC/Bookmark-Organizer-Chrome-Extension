@@ -36,10 +36,10 @@ export class OrganizerService {
         let allLinks = [];
 
         if (fileBookmarks) {
-            this.onProgress({ status: 'info', message: '📂 Processing uploaded file...' });
+            this.onProgress({ status: 'info', message: 'Processing uploaded file...' });
             allLinks = fileBookmarks;
         } else {
-            this.onProgress({ status: 'info', message: '📥 Reading bookmarks (Browser)...' });
+            this.onProgress({ status: 'info', message: 'Reading bookmarks (Browser)...' });
             const tree = await getBookmarks();
 
             const traverse = (nodes) => {
@@ -65,15 +65,15 @@ export class OrganizerService {
         }
 
         // --- Phase 1: Generate Schema ---
-        this.onProgress({ status: 'info', message: '🧠 Analyzing bookmarks to generate a clean, non-redundant folder structure...' });
+        this.onProgress({ status: 'info', message: 'Analyzing bookmarks to generate a clean, non-redundant folder structure...' });
         if (allLinks.length > SCHEMA_SAMPLE_LIMIT) {
-            this.onProgress({ status: 'info', message: `📊 Large collection: designing the folder structure from a sample of ${SCHEMA_SAMPLE_LIMIT.toLocaleString()} of ${allLinks.length.toLocaleString()} bookmarks. All bookmarks will still be classified.` });
+            this.onProgress({ status: 'info', message: `Large collection: designing the folder structure from a sample of ${SCHEMA_SAMPLE_LIMIT.toLocaleString()} of ${allLinks.length.toLocaleString()} bookmarks. All bookmarks will still be classified.` });
         }
 
         let schema;
         try {
             schema = await generateSchema(allLinks, this.apiKey, this.categories, this.model, this.subfolderTarget);
-            this.onProgress({ status: 'info', message: '✨ Generated category schema:' });
+            this.onProgress({ status: 'info', message: 'Generated category schema:' });
             if (schema && schema.categories) {
                 schema.categories.forEach(cat => {
                     const subCats = cat.sub_categories && cat.sub_categories.length > 0 
@@ -84,7 +84,7 @@ export class OrganizerService {
             }
         } catch (err) {
             console.error('Schema generation failed, falling back to basic categories:', err);
-            this.onProgress({ status: 'warning', message: `⚠️ Schema generation failed after retries: ${err.message}. Using default categories (no subfolders).` });
+            this.onProgress({ status: 'warning', message: `Schema generation failed after retries: ${err.message}. Using default categories (no subfolders).` });
             schema = {
                 categories: this.categories.map(c => ({ name: c, sub_categories: [] }))
             };
@@ -92,7 +92,7 @@ export class OrganizerService {
 
         let rootFolder = null;
         if (!fileBookmarks) {
-            this.onProgress({ status: 'info', message: '📁 Creating output directory...' });
+            this.onProgress({ status: 'info', message: 'Creating output directory...' });
             const rootId = '2'; // 'Other Bookmarks' usually
             rootFolder = await findOrCreateFolder(rootId, "AI Organized Bookmarks-" + new Date().toISOString().slice(0, 10));
         }
@@ -101,7 +101,7 @@ export class OrganizerService {
         let processed = 0;
 
         const batchSize = this.calculateAdaptiveBatchSize(total);
-        this.onProgress({ status: 'info', message: `📊 Processing with adaptive batch size: ${batchSize} items/batch` });
+        this.onProgress({ status: 'info', message: `Processing with adaptive batch size: ${batchSize} items/batch` });
 
         // Group into batches
         const batches = [];
@@ -138,7 +138,7 @@ export class OrganizerService {
             } catch (err) {
                 console.error(`Batch ${currentIdx + 1} failed:`, err);
                 failedBatches.push({ index, batchData, label: currentIdx + 1 });
-                this.onProgress({ status: 'warning', message: `⚠️ Batch ${currentIdx + 1} failed (${err.message}) — will retry after the main pass.` });
+                this.onProgress({ status: 'warning', message: `Batch ${currentIdx + 1} failed (${err.message}) — will retry after the main pass.` });
             }
 
             await processNext();
@@ -159,13 +159,13 @@ export class OrganizerService {
         for (const { index, batchData, label } of failedBatches) {
             if (this.isCancelled) break;
 
-            this.onProgress({ status: 'processing', message: `🔁 Retrying batch ${label}/${batches.length}...` });
+            this.onProgress({ status: 'processing', message: `Retrying batch ${label}/${batches.length}...` });
             try {
                 results[index] = await classifyBatch(batchData, this.apiKey, schema, this.model);
             } catch (err) {
                 console.error(`Batch ${label} failed on second pass:`, err);
                 results[index] = batchData.map(b => ({ title: b.title, url: b.url, category: 'Other', sub_category: 'General' }));
-                this.onProgress({ status: 'warning', message: `⚠️ Batch ${label} could not be classified (${err.message}). Its ${batchData.length} bookmarks were filed under Other → General so none are lost.` });
+                this.onProgress({ status: 'warning', message: `Batch ${label} could not be classified (${err.message}). Its ${batchData.length} bookmarks were filed under Other → General so none are lost.` });
             }
             processed += batchData.length;
             this.onProgress({ status: 'progress', percent: Math.min(100, Math.round((processed / total) * 100)) });
@@ -179,11 +179,11 @@ export class OrganizerService {
         const finalResults = results.flat().filter(Boolean);
 
         if (fileBookmarks) {
-            this.onProgress({ status: 'info', message: '💾 Generating organized file...' });
+            this.onProgress({ status: 'info', message: 'Generating organized file...' });
             downloadBookmarks(finalResults);
         } else {
             // Browser mode: Save all sequentially at the end
-            this.onProgress({ status: 'info', message: `💾 Saving ${finalResults.length} bookmarks to browser...` });
+            this.onProgress({ status: 'info', message: `Saving ${finalResults.length} bookmarks to browser...` });
             
             // Clean up the folder cache before starting the write operation
             clearFolderCache();
@@ -227,7 +227,7 @@ export class OrganizerService {
         if (this.isCancelled) {
             this.onProgress({ status: 'warning', message: 'Process cancelled.' });
         } else {
-            this.onProgress({ status: 'done', message: '✅ Organization complete!' });
+            this.onProgress({ status: 'done', message: 'Organization complete!' });
         }
     }
 }
